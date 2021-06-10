@@ -53,7 +53,7 @@ int main(int argc,char *argv[])
 		exit(1);
     }
 
-    pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&mutx, NULL);
     s_sock = socket(AF_INET,SOCK_STREAM,0); //TCP, IPv4
     
     if(s_sock==-1)  error_handling("Socket Fail");
@@ -61,10 +61,10 @@ int main(int argc,char *argv[])
     //s_adr 구조체의 내용 세팅
     memset(&s_adr, 0, sizeof(s_adr));
     s_adr.sin_family = AF_INET;
-    s_adr.sin_addr.s_sddr = htonl(INADDR_ANY);
+    s_adr.sin_addr.s_addr = htonl(INADDR_ANY);
     s_adr.sin_port = htons(atoi(argv[1]));
     
-    if(bind(s_sock,(struct sockaddr*)&s_adr, sizeof(S_adr))==-1)    error_handling("Bind Error");
+    if(bind(s_sock,(struct sockaddr*)&s_adr, sizeof(s_adr))==-1)    error_handling("Bind Error");
     //클라이언트로 부터 연결 요청을 기다림
     if(listen(s_sock, 5)==-1) error_handling("Listen Error");
 
@@ -139,7 +139,7 @@ void *handle_client(void *arg)
         {
             int j;
             int noClient = 1;
-            int fileGo = NULL:
+            int fileGo = NULL;
             char tmpName[NAME_SIZE];
 
             read(c_sock, tmpName, NAME_SIZE);
@@ -150,7 +150,7 @@ void *handle_client(void *arg)
             {
                 if(!strcmp(tmpName, client_name_list[j]))
                 {
-                    noClinet=0;
+                    noClient=0;
                     fileGo=j;
                     break;
                 }
@@ -159,7 +159,7 @@ void *handle_client(void *arg)
             if(noClient==1)
             {
                 write(c_sock,"[NO Client. SORRY]",BUF_SIZE);
-                pthread_mutex_unlock(&unlock);
+                pthread_mutex_unlock(&mutx);
                 continue;
             }
             else if(noClient==0)
@@ -220,7 +220,7 @@ void *handle_client(void *arg)
                 }
             }
 
-            for(i=0;i<clinet_cnt;i++)
+            for(i=0;i<client_cnt;i++)
             {
                 if(c_sock == clinet_sock[i])    continue;
                 wirte(clinet_sock[i],"FileEnd : sr -> cl",BUF_SIZE);
@@ -234,7 +234,7 @@ void *handle_client(void *arg)
         }
         else if(!strcmp(msg, sig_whisper))
         {
-            int j=;
+            int j;
             int noClient = 1;
             int mGo=0;
             char tmpName[NAME_SIZE];

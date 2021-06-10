@@ -143,8 +143,8 @@ void *send_msg(void *arg)
                 Flength = fread(t_msg,1,BUF_SIZE,fp);
                 if(Flength != BUF_SIZE){
                     for(i=0;i<Flength;i++)  last_msg[i]=t_msg[i];
-                    writte(sock, last_msg, BUF_SIZE);
-                    wite(sock,"FileEND : cl -> sr",BUF_SIZE);
+                    write(sock, last_msg, BUF_SIZE);
+                    write(sock,"FileEND : cl -> sr",BUF_SIZE);
                     break;
                 }
 
@@ -254,7 +254,7 @@ void *send_msg(void *arg)
     
 }
 
-void *receive_thread(void *arg)
+void *recv_msg(void *arg)
 {
     int sock=*((int*)arg);
 	char name_msg[BUF_SIZE];

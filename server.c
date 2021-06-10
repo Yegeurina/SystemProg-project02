@@ -1,368 +1,324 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <sys/file.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <time.h>
-#include <pthread.h>
-
-#define LOG_SIZE 10000 //최대 기록 가능 log
-#define BUF_SIZE 500 //최대 입력가능한 문자열 길이
-#define NAME_SIZE 20 //최대 닉네임 길이
-#define MAX_CLIENT_NUM 10 //최대 참가자 수
-
-void error_handling(char *msg); //경고 메시지 발송 및 종료
-void *menu_thread_handling(void *arg); //명령어 처리
-void *handle_client(void *arg); //User Handler
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<string.h>
+#include<arpa/inet.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<pthread.h>
+#include<time.h>
+ 
+#define BUF_SIZE 100
+#define MAX_CLNT 100 //max socket comunication 100
+#define MAX_IP 30
+ 
+void * handle_clnt(void *arg);
 void send_msg(char *msg, int len);
+void error_handling(char *msg);
+char* serverState(int count);
+void menu(char port[]);
+char msgpay[BUF_SIZE];
+int flagz=0;
+//volatile int gameflag=0;
 
-char *START_STRING = "Connected to chat_server \n"; // 클라이언트 환영 메시지
-
-int client_cnt=0; // 참가자 수
-int clinet_sock[MAX_CLIENT_NUM]; //참가자 소켓 번호 목록
-char client_name_list[MAX_CLIENT_NUM][NAME_SIZE]; //참가자 닉네임
-
-int chat_num=0; //대화 수
-char Chatting[LOG_SIZE][BUF_SIZE]; //대화 로그 기록 버퍼
-
+/****************************/
+ 
+int clnt_cnt=0;//how much clnt ?
+int clnt_socks[MAX_CLNT]; // max join 100, socket [100]
 pthread_mutex_t mutx;
-
-time_t ct;
-struct tm tm;
-int s_sock;
-
-int main(int argc,char *argv[])
+ 
+int main(int argc, char *argv[])
 {
-    int c_sock;
-    int i;
-    struct sockaddr_in s_adr, c_adr;
-    int c_adr_size;
-    char client_name[NAME_SIZE];
-
-    pthread_t menu_handling, client_handling;
-
-    if(argc !=2 )
+    int serv_sock, clnt_sock;
+    struct sockaddr_in serv_adr, clnt_adr;
+    int clnt_adr_sz;
+    pthread_t t_id;
+ //socket create, and thread ready
+    /** time log **/
+    struct tm *t;
+    time_t timer = time(NULL);
+    t=localtime(&timer);
+ 
+    if (argc != 2)
     {
-        printf("Usage : %s <port>\n", argv[0]);
-		exit(1);
+        printf(" Usage : %s <port>\n", argv[0]);
+        exit(1);
     }
-
+ //port input please
+    menu(argv[1]);
+ //information
     pthread_mutex_init(&mutx, NULL);
-    s_sock = socket(AF_INET,SOCK_STREAM,0);
+    serv_sock=socket(PF_INET, SOCK_STREAM, 0);
     
-    if(s_sock==-1)  error_handling("Socket Fail");
-    
-    //s_adr 구조체의 내용 세팅
-    memset(&s_adr, 0, sizeof(s_adr));
-    s_adr.sin_family = AF_INET;
-    s_adr.sin_addr.s_addr = htonl(INADDR_ANY);
-    s_adr.sin_port = htons(atoi(argv[1]));
-    
-    if(bind(s_sock,(struct sockaddr*)&s_adr, sizeof(s_adr))==-1)    error_handling("Bind Error");
-    //클라이언트로 부터 연결 요청을 기다림
-    if(listen(s_sock, 5)==-1) error_handling("Listen Error");
-
-   // pthread_create(&menu_handling,NULL,menu_thread_handling,(void *)NULL);
-
+    memset(&serv_adr, 0, sizeof(serv_adr));
+    serv_adr.sin_family=AF_INET;
+    serv_adr.sin_addr.s_addr=htonl(INADDR_ANY);
+    serv_adr.sin_port=htons(atoi(argv[1]));
+ //in serv_sock
+    if (bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr))==-1)
+        error_handling("bind() error");
+    if (listen(serv_sock, 5)==-1)
+        error_handling("listen() error");
+ //error check
     while(1)
-    {    
-        printf("while 진입\n");
-        c_adr_size = sizeof(c_adr);
-        c_sock = accept(s_sock, (struct sockaddr*)&c_adr,&c_adr_size);
-            
-        if(c_sock ==-1) error_handling("Accept Fail");
-
-        if(client_cnt>=MAX_CLIENT_NUM)
-        {
-            printf("CONNECT FAIL : %d\n",c_sock);
-            write(c_sock,"Too Many Users. SORRY",BUF_SIZE);
-            continue;
-        }
-
+    {//loop accept
+        t=localtime(&timer);
+        clnt_adr_sz=sizeof(clnt_adr);
+        clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_adr, &clnt_adr_sz);
+ 
         pthread_mutex_lock(&mutx);
-
-        clinet_sock[client_cnt]=c_sock;
-        read(c_sock,client_name,NAME_SIZE);
-        strcpy(client_name_list[client_cnt++],client_name);
-
+        clnt_socks[clnt_cnt++]=clnt_sock;//new client join macthing clnt_sock[]
         pthread_mutex_unlock(&mutx);
-
-        pthread_create(&client_handling, NULL, handle_client, (void *)c_sock);
-         pthread_detach(client_handling);
-        ct = time(NULL);
-        tm = *localtime(&ct);
-        printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
-         printf("Connected client IP : %s\n",inet_ntoa(c_adr.sin_addr));
-
+ 
+        pthread_create(&t_id, NULL, handle_clnt, (void*)&clnt_sock);//thread
+        pthread_detach(t_id);
+        printf(" Connceted client IP : %s ", inet_ntoa(clnt_adr.sin_addr));
+        printf("(%d-%d-%d %d:%d)\n", t->tm_year+1900, t->tm_mon+1, t->tm_mday,
+        t->tm_hour, t->tm_min);//join time
+        printf(" chatter (%d/100)\n", clnt_cnt);
     }
-    close(s_sock);
+    close(serv_sock);
     return 0;
-
-    
 }
-
-void *handle_client(void *arg)
+ 
+void *handle_clnt(void *arg) //in thread
 {
-    printf("handle_client\n");
+    int clnt_sock=*((int*)arg);
+    int str_len=0, i;
+    char msg[BUF_SIZE];
 
-    int c_sock = *((int *)arg);
-    int len=0,i;
-    int filesize=0;
-    const char sig_file[BUF_SIZE] = {"File : cl -> sr"};
-	const char Fmsg_end[BUF_SIZE] = {"FileEND : cl -> sr"};
-	const char sig_file_all[BUF_SIZE] = {"File : cl -> sr all"};
-	const char sig_whisper[BUF_SIZE] = {"Whisper : cl -> sr"};
-	char msg[BUF_SIZE];
-	char file_msg[BUF_SIZE];
+    char filename[100];
+	FILE *fp;
+    char filebuf[100];
+	
+    char name_cnt[2]; 
 
-    while((len = read(c_sock, msg, BUF_SIZE))!=0)
-    {
-        printf("handle client while 진입\n msg : %s\n",msg);
-        if(!strcmp(msg,sig_file))
-        {
-            printf("Sigfile\n");
-            int j;
-            int noClient = 1;
-            int fileGo;
-            char tmpName[NAME_SIZE];
+    size_t bufsize = 0;
+    int nbyte;
+ memset(filebuf, 0x00,30);  
+    char filesize[5];
 
-            read(c_sock, tmpName, NAME_SIZE);
-
-            pthread_mutex_lock(&mutx);
-
-            for(j=0;j<client_cnt;j++)
-            {
-                if(!strcmp(tmpName, client_name_list[j]))
-                {
-                    noClient=0;
-                    fileGo=j;
-                    break;
-                }
-            }
-
-            if(noClient==1)
-            {
-                write(c_sock,"[NO Client. SORRY]",BUF_SIZE);
-                pthread_mutex_unlock(&mutx);
-                continue;
-            }
-            else if(noClient==0)
-            {
-                write(c_sock,"[Cotinue Ok NowGo]",BUF_SIZE);
-            }
-
-            write(clinet_sock[fileGo],"File : sr -> cl",BUF_SIZE);
-
-            read(c_sock,&filesize,sizeof(int));
-            printf("File size %d Bytes\n",filesize);
-            write(clinet_sock[fileGo],&filesize,sizeof(int));
-
-            while(1)
-            {
-                read(c_sock, file_msg,BUF_SIZE);
-                if(!strcmp(file_msg,Fmsg_end))  break;
-                write(clinet_sock[fileGo], file_msg , BUF_SIZE);
-            }
-
-            write(clinet_sock[fileGo],"FileEnd : sr -> cl",BUF_SIZE);
-
-            pthread_mutex_unlock(&mutx);
-            ct = time(NULL);
-            tm = *localtime(&ct);
-            printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
-            printf("(!NOTICE)File Data transfered\n");
+    int read_cnt;
 
 
-        }
-        else if(!strcmp(msg, sig_file_all))
-        {
-            printf("sigfileall\n");
-            pthread_mutex_lock(&mutx);
+    char totalprice[100];
+    char howm[100];
+    int price =1;
+    int howmany =1;
+    int result=1;
+    char result_c[100];
 
-            for(i=0;i<client_cnt;i++)
-            {
-                if(c_sock == clinet_sock[i])    continue;
-                write(clinet_sock[i],"File : sr -> cl",BUF_SIZE);
-            }
+    int gamenum;
+    char gamec[100];
+    char temp[100];
 
-            read(c_sock,&filesize,sizeof(int));
-            printf("File size %d Bytes\n",filesize);
+    char flag[2];
+    char gamemsg[20];
 
-            for(i=0;i<client_cnt;i++)
-            {
-                if(c_sock == clinet_sock[i])    continue;
-                write(clinet_sock[i],&filesize,sizeof(int));
-            }
+    int win,won;
 
-            while(1)
-            {
-                read(c_sock,file_msg,BUF_SIZE);
-                if(!strcmp(file_msg,Fmsg_end))  break;
-                for(i=0;i<client_cnt;i++)
-                {
-                    if(c_sock == clinet_sock[i]) continue;
-                    write(clinet_sock[i],file_msg,BUF_SIZE);
-                }
-            }
+    char under[2];
+    char up[2];
+    char please[2];
 
-            for(i=0;i<client_cnt;i++)
-            {
-                if(c_sock == clinet_sock[i])    continue;
-                write(clinet_sock[i],"FileEnd : sr -> cl",BUF_SIZE);
-            }
+    won = (rand() %1000) +1;
+   
 
-            pthread_mutex_unlock(&mutx);
-            ct = time(NULL);
-            tm = *localtime(&ct);
-            printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
-            printf("(!NOTICE)File Data Transfered\n");
-        }
-        else if(!strcmp(msg, sig_whisper))
-        {
-            printf("sig whisper\n");
-            int j;
-            int noClient = 1;
-            int mGo=0;
-            char tmpName[NAME_SIZE];
-            char msg[BUF_SIZE];
 
-            read(c_sock, tmpName, NAME_SIZE);
-
-            pthread_mutex_lock(&mutx);
-            for(j=0;j<client_cnt;j++)
-            {
-                if(!strcmp(tmpName,client_name_list[j]))
-                {
-                    noClient=0;
-                    mGo=j;
-                    break;
-                }
-            }
-            pthread_mutex_unlock(&mutx);
-
-            read(c_sock, msg, BUF_SIZE);
-
-            if(noClient==1) write(c_sock,"Sorry, No Client like that",BUF_SIZE);
-            else    write(clinet_sock[mGo],msg,BUF_SIZE);
-
-        }
-        else 
-        {
-            printf("else\n");
-            printf("(!Notice)Chatting message transfered \n");
-			send_msg(msg, len);
-        }
-    }
-
-    pthread_mutex_lock(&mutx);
-    for(i=0;i<client_cnt;i++) //remove disconnected client
-    {
-        if(c_sock == clinet_sock[i])
-        {
-            while(i++<client_cnt-1)
-            {
-                clinet_sock[i]=clinet_sock[i+1];
-                strcpy(client_name_list[i],client_name_list[i+1]);
-            }
-            break;
-        }
-    }
-    client_cnt--;
-    pthread_mutex_unlock(&mutx);
-    close(c_sock);
-    return NULL;
-}
-
-void *menu_thread_handling(void *arg) // 명령어 처리
-{
-    int i,j;
-    fd_set read_fd; //읽기 감지
-    
-    printf("\n");
-	printf("[MENU]\n\n");
-	printf("1. /menu -> some orders \n");
-    printf("2. /log -> save chatting log file \n");
-    printf("3. /num_user -> Number of users in the current chat\n");
-    printf("4. /num_chat -> Number of chat in the current chat\n");
-    printf("5. /notice -> Full notice from server\n");
-	printf("6. /exit -> chatting program exit \n");
-    
     while(1)
-    {
-        char bufmsg[BUF_SIZE];
-        printf("SERVER > ");
-        fgets(bufmsg,BUF_SIZE,stdin); //명령어 입력
-        if(!strcmp(bufmsg,'\n')) continue;
-        else if(!strcmp(bufmsg,"/menu"))  //menu
-        {
-            printf("[MENU]\n\n");
-            printf("1. /menu -> some orders \n");
-            printf("2. /log -> save chatting log file \n");
-            printf("3. /num_user -> Number of users in the current chat\n");
-            printf("4. /num_chat -> Number of chat in the current chat\n");
-            printf("5. /notice -> Full notice from server\n");
-	        printf("6. /exit -> chatting program exit \n");
-        }
-        else if(!strcmp(bufmsg,"/log")) // log
-        {
-            
-        }
-        else if(!strcmp(bufmsg,"/num_user")) //num_user
-        {
-            printf("Number of user in current chat : %d",client_cnt);
-        }
-        else if(!strcmp(bufmsg,"/num_chat")) //num_chat
-        {
-            printf("Number of chat in current chat : %d",chat_num);
-        }
-        else if(!strcmp(bufmsg,"/notice")) //notice
-        {
-            for (i = 0; i < client_cnt; i++) {
-				if (FD_ISSET(clinet_sock[i], &read_fd)) {
-					chat_num++;				//총 대화 수 증가
-					// 모든 채팅 참가자에게 메시지 방송
-					for (j = 0; j < client_cnt; j++)
-						send(clinet_sock[j], bufmsg, strlen(bufmsg), 0);
-					ct = time(NULL);
-					tm = *localtime(&ct);
-					printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
-					printf("%s", bufmsg);			//메시지 출력
-				}
+{//caculater ++ function
+	read(clnt_sock,flag,1);
+
+
+	if(strcmp(flag,"`")==0)//ducth pay
+	{
+
+		read(clnt_sock, howm, 2);//People
+		howmany = atoi(howm);
+
+		read(clnt_sock, totalprice, 10);//Total Price
+		price = atoi(totalprice);
+
+
+		strcpy(msg," people : ");
+		strcat(msg,howm);
+
+		strcat(msg,",  totalprice : ");//msg add information
+		strcat(msg,totalprice);
+
+		strcat(msg," won ,  Per person: ");
+		result = price/howmany; // caculate
+		sprintf(result_c,"%d",result);
+		strcat(msg,result_c);//msg add result
+
+		strcat(msg," won -");
+		str_len=strlen(msg); 
+}
+
+	else if (strcmp(flag,")")==0)
+	{	
+	sprintf(under,"%d",1);
+	sprintf(up,"%d",2);
+	sprintf(please,"%d",3);
+
+	while(strcmp(flag,")")==0)
+{
+	int aa=0;
+	int cc=0;
+		read(clnt_sock,gamec,4);
+			
+		win=atoi(gamec);
+
+
+	//	strcpy(msg,gamec);
+		str_len=strlen(msg);
+
+
+			if(won==win)
+			{
+			//strcpy(msg, "Clear! minigame Winner is -> ");
+		//	gameflag=0;
+			write(clnt_sock,")",1);
+			break;
 			}
-        }
-        else if(!strcmp(bufmsg,"/exit")) //exit
-        {
-            if(client_cnt!=0){
-				puts("진행 중인 채팅이 있습니다.");
+			else if(win>won)
+			{
+				write(clnt_sock,under,2);
+			}
+			else if(win<won)
+			{	write(clnt_sock,up,2);
 			}
 			else
 			{
-				puts("Good bye!");
-				close(s_sock);
-				exit(0);
+				write(clnt_sock,please,2);
 			}
-        }
-        else
-            printf("No such command. See menu\n");
-    }
+
+}
+	memset(msg,0,sizeof(msg));
 }
 
-void send_msg(char * msg, int len)   // send to all
+	else if (strcmp(flag,"_")==0)
+	{
+
+		memset(msg,0,sizeof(msg));
+		read(clnt_sock, name_cnt,2);
+		read(clnt_sock, filename, atoi(name_cnt));//filename read
+		fp=fopen(filename,"wb");
+		
+	read(clnt_sock,filesize,5); //file size read
+
+	int asize = atoi(filesize);
+	read_cnt=read(clnt_sock,filebuf,asize);//file read
+
+	fwrite((void*)filebuf, 1, read_cnt, fp);//file fwrite
+		
+	strcpy(msg,filesize);
+
+		strcpy(msg,filename);
+		strcat(msg," stored :\n");
+		strcat(msg,filebuf);
+		
+		str_len=strlen(msg);
+		fclose(fp);
+
+	}
+
+	else if (strcmp(flag,"}")==0)
+	{
+int ifsize = 0;
+char fsize[5];
+		memset(msg,0,sizeof(msg));
+		read(clnt_sock, name_cnt,2);
+		read(clnt_sock, filename, atoi(name_cnt));//filename read
+		//good
+		fp=fopen(filename,"rb");//file open
+
+	fseek(fp, 0, SEEK_END);
+	ifsize = ftell(fp);//fsize == filesize
+	fseek(fp, 0, SEEK_SET);
+
+	sprintf(fsize,"%d",ifsize);
+	write(clnt_sock,fsize,5);//file size write good 
+
+
+	if(fp!=NULL)
+	{//fail
+
+		read_cnt=fread((void*)filebuf,1,ifsize,fp);//file read
+
+	}
+	usleep(500000);
+	strcpy(msg,filebuf);//go msg, filebuf
+	fclose(fp);
+
+	}
+
+
+else
 {
-	int i;
-	pthread_mutex_lock(&mutx);
-	for(i=0; i<client_cnt; i++)
-		write(clinet_sock[i], msg, BUF_SIZE);
-	pthread_mutex_unlock(&mutx);
+str_len=read(clnt_sock, msg, sizeof(msg));
+//30000===================================================
+if(str_len==0)
+{break;}
 }
 
-void error_handling(char *msg) //error handling
+      send_msg(msg, str_len);//read and write all clnt_cnt[]
+ }
+    // remove disconnected client
+    pthread_mutex_lock(&mutx);
+    for (i=0; i<clnt_cnt; i++)
+    {
+        if (clnt_sock==clnt_socks[i])
+        {
+            while(i++<clnt_cnt-1)
+                clnt_socks[i]=clnt_socks[i+1];
+            break;
+        }
+    }
+    clnt_cnt--;
+    pthread_mutex_unlock(&mutx);
+    close(clnt_sock);
+    return NULL;
+}
+
+
+
+void send_msg(char* msg, int len)
+{
+    int i;
+    pthread_mutex_lock(&mutx);
+
+    for (i=0; i<clnt_cnt; i++)//all clnt
+        write(clnt_socks[i], msg, len);
+    pthread_mutex_unlock(&mutx);
+}
+
+void error_handling(char *msg)
 {
     fputs(msg, stderr);
-    fputs('\n',stderr);
+    fputc('\n', stderr);
     exit(1);
+}
+ 
+char* serverState(int count)
+{
+    char* stateMsg = malloc(sizeof(char) * 20);
+    strcpy(stateMsg ,"None");
+    
+    if (count < 5)
+        strcpy(stateMsg, "Good");
+    else
+        strcpy(stateMsg, "Bad");
+    
+    return stateMsg;
+}        
+ 
+void menu(char port[])
+{
+    system("clear");
+    printf(" **** moon/sun chat server ****\n");
+    printf(" server port    : %s\n", port);
+    printf(" server state   : %s\n", serverState(clnt_cnt));
+    printf(" max connection : %d\n", MAX_CLNT);
+    printf(" ****          Log         ****\n\n");
 }

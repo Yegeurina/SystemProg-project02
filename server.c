@@ -122,6 +122,114 @@ int main(int argc,char *argv[])
     
 }
 
+void *handle_client(void *arg)
+{
+    int c_sock = *((int *)arg);
+    int len=0,i;
+    int filesize=0;
+    const char sig_file[BUF_SIZE] = {"file : cl->sr"};
+	const char Fmsg_end[BUF_SIZE] = {"FileEnd_cl->sr"};
+	const char sig_file_all[BUF_SIZE] = {"file : cl->sr_all"};
+	const char sig_whisper[BUF_SIZE] = {"whisper : cl->sr"};
+	char msg[BUF_SIZE] = {NULL};
+	char file_msg[BUF_SIZE] = {NULL};
+
+    while((len = read(c_sock, msg, BUF_SIZE))!=0)
+    {
+        if(!strcmp(msg,sig_file))
+        {
+            int j;
+            int noClient = 1;
+            int fileGo = NULL:
+            char tmpName[NAME_SIZE];
+
+            read(c_sock, tmpName, NAME_SIZE);
+
+            pthread_mutex_lock(&mutx);
+
+            for(j=0;j<client_cnt;j++)
+            {
+                if(!strcmp(tmpName, client_name_list[j]))
+                {
+                    noClinet=0;
+                    fileGo=j;
+                    break;
+                }
+            }
+
+            if(noClient==1)
+            {
+                write(c_sock,"[NO Client. SORRY]",BUF_SIZE);
+                pthread_mutex_unlock(&unlock);
+                continue;
+            }
+            else if(noClient==0)
+            {
+                write(c_sock,"[Cotinue Ok NowGo]",BUF_SIZE);
+            }
+
+            write(clinet_sock[fileGo],"file : sr -> cl",BUF_SIZE);
+
+            read(c_sock,&filesize,sizeof(int));
+            printf("File size %d Bytes\n",filesize);
+            write(clinet_sock[fileGo],&filesize,sizeof(int));
+
+            while(1)
+            {
+                read(c_sock, file_msg,BUF_SIZE);
+                if(!strcmp(file_msg,Fmsg_end))  break;
+                write(clinet_sock[fileGo], file_msg , BUF_SIZE);
+            }
+
+            write(clinet_sock[fileGo],"FileEnd : sr -> cl",BUF_SIZE);
+
+            pthread_mutex_unlock(&mutx);
+
+            printf("(!NOTICE)File Data transfered\n");
+
+        }
+        else if(!strcmp(msg, sig_file_all))
+        {
+            pthread_mutex_lock(&mutx);
+
+            for(i=0;i<client_cnt;i++)
+            {
+                if(c_sock == clinet_sock[i])    continue;
+                write(clinet_sock[i],"file : sr -> cl",BUF_SIZE);
+            }
+
+            read(c_sock,&filesize,sizeof(int));
+            printf("File size %d Bytes\n",filesize);
+
+            for(i=0;i<client_cnt;i++)
+            {
+                if(c_sock == clinet_sock[i])    continue;
+                write(clinet_sock[i],&filesize,sizeof(int));
+            }
+
+            while(1)
+            {
+                read(c_sock,file_msg,BUF_SIZE);
+                if(!strcmp(file_msg,Fmsg_end))  break;
+                for(i=0;i<client_cnt;i++)
+                {
+                    if(c_sock == clinet_sock[i]) continue;
+                    write(clinet_sock[i],file_msg,BUF_SIZE);
+                }
+            }
+
+            for(i=0;i<clinet_cnt;i++)
+            {
+                if(c_sock == clinet_sock[i])    continue;
+                wirte(clinet_sock[i],"FileEnd : sr -> cl",BUF_SIZE);
+            }
+
+            pthread_mutex_unlock(&mutx);
+            printf("(!NOTICE)File Data Transfered\n");
+        }
+    }
+}
+
 void *menue_thread_handling(void *arg) // 명령어 처리
 {
     int i,j;

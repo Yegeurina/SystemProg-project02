@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/file.h>
@@ -127,10 +126,10 @@ void *handle_client(void *arg)
     int c_sock = *((int *)arg);
     int len=0,i;
     int filesize=0;
-    const char sig_file[BUF_SIZE] = {"file : cl->sr"};
-	const char Fmsg_end[BUF_SIZE] = {"FileEnd_cl->sr"};
-	const char sig_file_all[BUF_SIZE] = {"file : cl->sr_all"};
-	const char sig_whisper[BUF_SIZE] = {"whisper : cl->sr"};
+    const char sig_file[BUF_SIZE] = {"File : cl -> sr"};
+	const char Fmsg_end[BUF_SIZE] = {"FileEND : cl -> sr"};
+	const char sig_file_all[BUF_SIZE] = {"File : cl -> sr all"};
+	const char sig_whisper[BUF_SIZE] = {"Whisper : cl -> sr"};
 	char msg[BUF_SIZE] = {NULL};
 	char file_msg[BUF_SIZE] = {NULL};
 

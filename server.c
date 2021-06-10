@@ -121,9 +121,10 @@ void *handle_client(void *arg)
 
     while((len = read(c_sock, msg, BUF_SIZE))!=0)
     {
-        
+        printf("handle client while 진입\n msg : %s\n",msg);
         if(!strcmp(msg,sig_file))
         {
+            printf("Sigfile\n");
             int j;
             int noClient = 1;
             int fileGo;
@@ -179,6 +180,7 @@ void *handle_client(void *arg)
         }
         else if(!strcmp(msg, sig_file_all))
         {
+            printf("sigfileall\n");
             pthread_mutex_lock(&mutx);
 
             for(i=0;i<client_cnt;i++)
@@ -221,6 +223,7 @@ void *handle_client(void *arg)
         }
         else if(!strcmp(msg, sig_whisper))
         {
+            printf("sig whisper\n");
             int j;
             int noClient = 1;
             int mGo=0;
@@ -249,6 +252,7 @@ void *handle_client(void *arg)
         }
         else 
         {
+            printf("else\n");
             printf("(!Notice)Chatting message transfered \n");
 			send_msg(msg, len);
         }

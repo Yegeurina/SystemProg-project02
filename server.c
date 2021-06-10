@@ -184,8 +184,11 @@ void *handle_client(void *arg)
             write(clinet_sock[fileGo],"FileEnd : sr -> cl",BUF_SIZE);
 
             pthread_mutex_unlock(&mutx);
-
+            ct = time(NULL);
+            tm = *localtime(&ct);
+            printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
             printf("(!NOTICE)File Data transfered\n");
+
 
         }
         else if(!strcmp(msg, sig_file_all))
@@ -225,6 +228,9 @@ void *handle_client(void *arg)
             }
 
             pthread_mutex_unlock(&mutx);
+            ct = time(NULL);
+            tm = *localtime(&ct);
+            printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
             printf("(!NOTICE)File Data Transfered\n");
         }
         else if(!strcmp(msg, sig_whisper))
@@ -254,6 +260,10 @@ void *handle_client(void *arg)
             if(noClient==1) wirte(c_sock,"Sorry, No Client like that",BUF_SIZE);
             else    write(clinet_sock[mGo],msg,BUF_SIZE);
 
+        }
+        else 
+        {
+               printf("%s",msg);
         }
     }
 

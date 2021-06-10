@@ -133,7 +133,7 @@ void *send_msg(void *arg)
             fclose(size);
 
             printf("(!NOTICE)File Transfer start\n(File size : %d Bytes)\n",filesize);
-            wirte(sock, &filesize,sizeof(int));
+            write(sock, &filesize,sizeof(int));
             filesize=0;
 
             fp=fopen(location,"rb");

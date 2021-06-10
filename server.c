@@ -52,7 +52,7 @@ int main(int argc,char *argv[])
     }
 
     pthread_mutex_init(&mutx, NULL);
-    s_sock = socket(AF_INET,SOCK_STREAM,0); //TCP, IPv4
+    s_sock = socket(AF_INET,SOCK_STREAM,0);
     
     if(s_sock==-1)  error_handling("Socket Fail");
     
@@ -70,6 +70,7 @@ int main(int argc,char *argv[])
 
     while(1)
     {    
+        printf("while 진입\n");
         c_adr_size = sizeof(c_adr);
         c_sock = accept(s_sock, (struct sockaddr*)&c_adr,&c_adr_size);
             
@@ -106,6 +107,8 @@ int main(int argc,char *argv[])
 
 void *handle_client(void *arg)
 {
+    printf("handle_client\n");
+
     int c_sock = *((int *)arg);
     int len=0,i;
     int filesize=0;

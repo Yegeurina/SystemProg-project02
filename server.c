@@ -101,7 +101,7 @@ int main(int argc,char *argv[])
             pthread_mutex_unlock(&mutx);
 
             pthread_create(&client_handling, NULL, handle_client, (void *)c_sock);
-            pthread_detach(menu_handling);
+            //pthread_detach(client_handling);
 
             send(c_sock,START_STRING,strlen(START_STRING),0);
             ct = time(NULL);

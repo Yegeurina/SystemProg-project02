@@ -101,7 +101,6 @@ int main(int argc,char *argv[])
             pthread_mutex_unlock(&mutx);
 
             pthread_create(&client_handling, NULL, handle_client, (void *)c_sock);
-            //pthread_detach(client_handling);
 
             send(c_sock,START_STRING,strlen(START_STRING),0);
             ct = time(NULL);
@@ -262,7 +261,8 @@ void *handle_client(void *arg)
         }
         else 
         {
-               printf("%s",msg);
+            printf("(!Notice)Chatting message transfered \n");
+			send_msg(msg, str_len);
         }
     }
 
@@ -357,6 +357,15 @@ void *menu_thread_handling(void *arg) // 명령어 처리
         else
             printf("No such command. See menu\n");
     }
+}
+
+void send_msg(char * msg, int len)   // send to all
+{
+	int i;
+	pthread_mutex_lock(&mutx);
+	for(i=0; i<client_cnt; i++)
+		write(clinet_sock[i], msg, BUF_SIZE);
+	pthread_mutex_unlock(&mutx);
 }
 
 void error_handling(char *msg) //error handling

@@ -129,8 +129,8 @@ void *handle_client(void *arg)
 	const char Fmsg_end[BUF_SIZE] = {"FileEND : cl -> sr"};
 	const char sig_file_all[BUF_SIZE] = {"File : cl -> sr all"};
 	const char sig_whisper[BUF_SIZE] = {"Whisper : cl -> sr"};
-	char msg[BUF_SIZE] = {NULL};
-	char file_msg[BUF_SIZE] = {NULL};
+	char msg[BUF_SIZE];
+	char file_msg[BUF_SIZE];
 
     while((len = read(c_sock, msg, BUF_SIZE))!=0)
     {
@@ -138,7 +138,7 @@ void *handle_client(void *arg)
         {
             int j;
             int noClient = 1;
-            int fileGo = NULL;
+            int fileGo;
             char tmpName[NAME_SIZE];
 
             read(c_sock, tmpName, NAME_SIZE);
@@ -262,7 +262,7 @@ void *handle_client(void *arg)
         else 
         {
             printf("(!Notice)Chatting message transfered \n");
-			send_msg(msg, str_len);
+			send_msg(msg, len);
         }
     }
 

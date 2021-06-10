@@ -256,7 +256,7 @@ void *handle_client(void *arg)
 
             read(c_sock, msg, BUF_SIZE);
 
-            if(noClient==1) wirte(c_sock,"Sorry, No Client like that",BUF_SIZE);
+            if(noClient==1) write(c_sock,"Sorry, No Client like that",BUF_SIZE);
             else    write(clinet_sock[mGo],msg,BUF_SIZE);
 
         }
@@ -285,7 +285,7 @@ void *handle_client(void *arg)
     return NULL;
 }
 
-void *menue_thread_handling(void *arg) // 명령어 처리
+void *menu_thread_handling(void *arg) // 명령어 처리
 {
     int i,j;
     fd_set read_fd; //읽기 감지

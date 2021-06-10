@@ -33,7 +33,7 @@ int main(int argc, int *argv[])
 {
     int sock;
     struct sockaddr_in s_adr;
-    pthread_t send_trhread, receive_thread;
+    pthread_t send_thread, receive_thread;
     void * thread_return;
 
     if(argc != 4)
@@ -252,6 +252,56 @@ void *send_msg(void *arg)
     
     return NULL
     
+}
+
+void *receive_thread(void *arg)
+{
+    int sock=*((int*)arg);
+	char name_msg[BUF_SIZE];
+	char file_msg[BUF_SIZE];
+	const char signal[BUF_SIZE] = {"File : sr -> cl"};
+	const char end_msg[BUF_SIZE] = {"FileEnd : sr -> cl"};
+	const char nocl_msg[BUF_SIZE] = {"[NO Client. SORRY]"};
+	const char yescl_msg[BUF_SIZE] = {"[Cotinue Ok NowGo]"};
+	const char noConnect[BUF_SIZE] = {"Too Many Users. SORRY"};
+	int len = 0;
+	int fileSize = 0;
+
+    while(1)
+    {
+        len = read(sock, name_msg,BUF_SIZE);
+        if(!strcmp(name_msg,signal))
+        {
+            setFName=1;
+            wOk=0;
+
+            printf("(!NOTICE)Receive Request.\n");
+            read(sock, &filesize,sizeof(int));
+			printf("(File size : %d Byte)\n [press Enter key to continue]", fileSize);
+
+            printf("(!NOTICe)set file name : ");
+            wOk = 1;
+            while(setFName==1)  sleep(1);
+            
+            msg[strlen(msg)-1]='\0';
+            
+            FILE *fp;
+            fp=fopen(msg,"wb");
+            while(1)
+            {
+                read(sock,file_msg,BUF_SIZE);
+                if(!strcmp(file_msg,end_msg))   break;
+                fwrite(file_msg,1,BUF_SIZE,fp);
+            }
+            fclose(fp);
+            printf("(!NOTICE)File receive finished\n");
+        }
+        else if(strcmp(name_msg,yescl_msg)==0)  client_exist=EXIST;
+        else if(strcmp(name_msg,nocl_msg)==0) client_exist=NOTEXIST;
+        else if(!strcmp(name_msg,noConnect)) error_handling(noConnect);
+        else fputs(name_msg,stdout);
+    }
+    return NULL;
 }
 
 void error_handling(char *msg) //error handling

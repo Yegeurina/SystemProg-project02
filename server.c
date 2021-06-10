@@ -167,7 +167,7 @@ void *handle_client(void *arg)
                 write(c_sock,"[Cotinue Ok NowGo]",BUF_SIZE);
             }
 
-            write(clinet_sock[fileGo],"file : sr -> cl",BUF_SIZE);
+            write(clinet_sock[fileGo],"File : sr -> cl",BUF_SIZE);
 
             read(c_sock,&filesize,sizeof(int));
             printf("File size %d Bytes\n",filesize);
@@ -197,7 +197,7 @@ void *handle_client(void *arg)
             for(i=0;i<client_cnt;i++)
             {
                 if(c_sock == clinet_sock[i])    continue;
-                write(clinet_sock[i],"file : sr -> cl",BUF_SIZE);
+                write(clinet_sock[i],"File : sr -> cl",BUF_SIZE);
             }
 
             read(c_sock,&filesize,sizeof(int));

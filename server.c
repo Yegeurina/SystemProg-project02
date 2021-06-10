@@ -68,7 +68,7 @@ int main(int argc,char *argv[])
     //클라이언트로 부터 연결 요청을 기다림
     if(listen(s_sock, 5)==-1) error_handling("Listen Error");
 
-    pthread_create(&menu_handling,NULL,menu_thread_handling,(void *)NULL);
+   // pthread_create(&menu_handling,NULL,menu_thread_handling,(void *)NULL);
 
     while(1)
     {

@@ -101,14 +101,11 @@ int main(int argc,char *argv[])
             pthread_mutex_unlock(&mutx);
 
             pthread_create(&client_handling, NULL, handle_client, (void *)c_sock);
-
-            send(c_sock,START_STRING,strlen(START_STRING),0);
+            pthread_detach(client_handling);
             ct = time(NULL);
             tm = *localtime(&ct);
             printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
             printf("Connected client IP : %s\n",inet_ntoa(c_adr.sin_addr));
-
-            printf("SERVER > ");
 
         }
 
@@ -134,6 +131,7 @@ void *handle_client(void *arg)
 
     while((len = read(c_sock, msg, BUF_SIZE))!=0)
     {
+        
         if(!strcmp(msg,sig_file))
         {
             int j;

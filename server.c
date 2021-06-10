@@ -25,7 +25,6 @@ char *START_STRING = "Connected to chat_server \n"; // 클라이언트 환영 �
 
 int client_cnt=0; // 참가자 수
 int clinet_sock[MAX_CLIENT_NUM]; //참가자 소켓 번호 목록
-char client_ip_list[MAX_CLIENT_NUM][NAME_SIZE]; //접속 IP 목록
 char client_name_list[MAX_CLIENT_NUM][NAME_SIZE]; //참가자 닉네임
 
 int chat_num=0; //대화 수
@@ -35,10 +34,11 @@ pthrad_mutex_t mutx;
 
 time_t ct;
 struct tm tm;
+int s_sock;
 
 int main(int argc,char *argv[])
 {
-    int s_sock, c_sock;
+    int c_sock;
     int i;
     struct sockaddr_in s_adr, c_adr;
     int c_adr_size;
@@ -227,7 +227,53 @@ void *handle_client(void *arg)
             pthread_mutex_unlock(&mutx);
             printf("(!NOTICE)File Data Transfered\n");
         }
+        else if(!strcmp(msg, sig_whisper))
+        {
+            int j=;
+            int noClient = 1;
+            int mGo=0;
+            char tmpName[NAME_SIZE];
+            char msg[BUF_SIZE];
+
+            read(c_sock, tmpName, NAME_SIZE);
+
+            pthread_mutex_lock(&mutx);
+            for(j=0;j<client_cnt;j++)
+            {
+                if(!strcmp(tmpName,client_name_list[j]))
+                {
+                    noClient=0;
+                    mGo=j;
+                    break;
+                }
+            }
+            pthread_mutex_unlock(&mutx);
+
+            read(c_sock, msg, BUF_SIZE);
+
+            if(noClient==1) wirte(c_sock,"Sorry, No Client like that",BUF_SIZE);
+            else    write(clinet_sock[mGo],msg,BUF_SIZE);
+
+        }
     }
+
+    pthread_mutex_lock(&mutx);
+    for(i=0;i<client_cnt;i++) //remove disconnected client
+    {
+        if(c_sock == clinet_sock[i])
+        {
+            while(i++<client_cnt-1)
+            {
+                clinet_sock[i]=clinet_sock[i+1];
+                strcpy(client_name_list[i],client_name_list[i+1]);
+            }
+            break;
+        }
+    }
+    client_cnt--;
+    pthread_mutex_unlock(&mutx);
+    close(c_sock);
+    return NULL;
 }
 
 void *menue_thread_handling(void *arg) // 명령어 처리
@@ -262,7 +308,7 @@ void *menue_thread_handling(void *arg) // 명령어 처리
         }
         else if(!strcmp(bufmsg,"/log")) // log
         {
-
+            
         }
         else if(!strcmp(bufmsg,"/num_user")) //num_user
         {
@@ -274,12 +320,33 @@ void *menue_thread_handling(void *arg) // 명령어 처리
         }
         else if(!strcmp(bufmsg,"/notice")) //notice
         {
-
+            for (i = 0; i < client_cnt; i++) {
+				if (FD_ISSET(clinet_sock[i], &read_fd)) {
+					chat_num++;				//총 대화 수 증가
+					// 모든 채팅 참가자에게 메시지 방송
+					for (j = 0; j < client_cnt; j++)
+						send(clinet_sock[j], bufmsg, strlen(bufmsg), 0);
+					ct = time(NULL);
+					tm = *localtime(&ct);
+					printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
+					printf("%s", bufmsg);			//메시지 출력
+				}
+			}
         }
         else if(!strcmp(bufmsg,"/exit")) //exit
         {
-
+            if(client_cnt!=0){
+				puts("진행 중인 채팅이 있습니다.");
+			}
+			else
+			{
+				puts("Good bye!");
+				close(s_sock);
+				exit(0);
+			}
         }
+        else
+            printf("No such command. See menu\n");
     }
 }
 

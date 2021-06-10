@@ -71,46 +71,35 @@ int main(int argc,char *argv[])
    // pthread_create(&menu_handling,NULL,menu_thread_handling,(void *)NULL);
 
     while(1)
-    {
-        FD_ZERO(&read_fd);
-        FD_SET(s_sock,&read_fd);
-
-        for(i=0;i<client_cnt;i++)
-            FD_SET(clinet_sock[i], &read_fd);
-        
-        if(FD_ISSET(s_sock,&read_fd)){
+    {    
+        c_adr_size = sizeof(c_adr);
+        c_sock = accept(s_sock, (struct sockaddr*)&c_adr,&c_adr_size);
             
-            c_adr_size = sizeof(c_adr);
-            c_sock = accept(s_sock, (struct sockaddr*)&c_adr,&c_adr_size);
-            
-            if(c_sock ==-1) error_handling("Accept Fail");
+        if(c_sock ==-1) error_handling("Accept Fail");
 
-            if(client_cnt>=MAX_CLIENT_NUM)
-            {
-                printf("CONNECT FAIL : %d\n",c_sock);
-                write(c_sock,"Too Many Users. SORRY",BUF_SIZE);
-                continue;
-            }
-
-            pthread_mutex_lock(&mutx);
-
-            clinet_sock[client_cnt]=c_sock;
-            read(c_sock,client_name,NAME_SIZE);
-            strcpy(client_name_list[client_cnt++],client_name);
-
-            pthread_mutex_unlock(&mutx);
-
-            pthread_create(&client_handling, NULL, handle_client, (void *)c_sock);
-            pthread_detach(client_handling);
-            ct = time(NULL);
-            tm = *localtime(&ct);
-            printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
-            printf("Connected client IP : %s\n",inet_ntoa(c_adr.sin_addr));
-
+        if(client_cnt>=MAX_CLIENT_NUM)
+        {
+            printf("CONNECT FAIL : %d\n",c_sock);
+            write(c_sock,"Too Many Users. SORRY",BUF_SIZE);
+            continue;
         }
 
-    }
+        pthread_mutex_lock(&mutx);
 
+        clinet_sock[client_cnt]=c_sock;
+        read(c_sock,client_name,NAME_SIZE);
+        strcpy(client_name_list[client_cnt++],client_name);
+
+        pthread_mutex_unlock(&mutx);
+
+        pthread_create(&client_handling, NULL, handle_client, (void *)c_sock);
+         pthread_detach(client_handling);
+        ct = time(NULL);
+        tm = *localtime(&ct);
+        printf("[%02d:%02d:%02d]", tm.tm_hour, tm.tm_min, tm.tm_sec);
+         printf("Connected client IP : %s\n",inet_ntoa(c_adr.sin_addr));
+
+    }
     close(s_sock);
     return 0;
 

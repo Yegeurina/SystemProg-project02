@@ -223,7 +223,7 @@ void *handle_client(void *arg)
             for(i=0;i<client_cnt;i++)
             {
                 if(c_sock == clinet_sock[i])    continue;
-                wirte(clinet_sock[i],"FileEnd : sr -> cl",BUF_SIZE);
+                write(clinet_sock[i],"FileEnd : sr -> cl",BUF_SIZE);
             }
 
             pthread_mutex_unlock(&mutx);

@@ -48,9 +48,9 @@ int main(int argc, int *argv[])
     if(sock == -1)  error_handling("Socket Fail");
 
 	memset(&s_adr, 0, sizeof(s_adr));
-	s_addr.sin_family=AF_INET;
-	s_addr.sin_addr.s_addr=inet_addr(argv[1]);
-	s_addr.sin_port=htons(atoi(argv[2]));
+	s_adr.sin_family=AF_INET;
+	s_adr.sin_addr.s_addr=inet_addr(argv[1]);
+	s_adr.sin_port=htons(atoi(argv[2]));
 
     if(connect(sock,(struct sockaddr*)&s_adr,sizeof(s_adr))==-1)    error_handling("Connect Error");
 
@@ -194,7 +194,7 @@ void *send_msg(void *arg)
                 if(Flength != BUF_SIZE)
                 {
                     for(i=0;i<Flength;i++)  last_msg[i]=t_msg[i];
-                    write(sock,lasgt_msg,BUF_SIZE);
+                    write(sock,last_msg,BUF_SIZE);
                     write(sock,"FileEND : cl -> sr",BUF_SIZE);
                     break;
                 }
@@ -250,7 +250,7 @@ void *send_msg(void *arg)
         } 
     }
     
-    return NULL
+    return NULL;
     
 }
 
@@ -276,7 +276,7 @@ void *receive_thread(void *arg)
             wOk=0;
 
             printf("(!NOTICE)Receive Request.\n");
-            read(sock, &filesize,sizeof(int));
+            read(sock, &fileSize,sizeof(int));
 			printf("(File size : %d Byte)\n [press Enter key to continue]", fileSize);
 
             printf("(!NOTICe)set file name : ");

@@ -43,8 +43,6 @@ int main(int argc,char *argv[])
     int c_adr_size;
     char client_name[NAME_SIZE];
 
-    fd_set read_fd;
-
     pthread_t menu_handling, client_handling;
 
     if(argc !=2 )

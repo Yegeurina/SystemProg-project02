@@ -16,7 +16,7 @@
 #define MAX_CLIENT_NUM 10 //최대 참가자 수
 
 void error_handling(char *msg); //경고 메시지 발송 및 종료
-void *menu_thread__handling(void *arg) //명령어 처리
+void *menu_thread_handling(void *arg); //명령어 처리
 void *handle_client(void *arg); //User Handler
 void send_msg(char *msg, int len);
 
@@ -29,7 +29,7 @@ char client_name_list[MAX_CLIENT_NUM][NAME_SIZE]; //참가자 닉네임
 int chat_num=0; //대화 수
 char Chatting[LOG_SIZE][BUF_SIZE]; //대화 로그 기록 버퍼
 
-pthrad_mutex_t mutx;
+pthread_mutex_t mutx;
 
 time_t ct;
 struct tm tm;
@@ -68,7 +68,7 @@ int main(int argc,char *argv[])
     //클라이언트로 부터 연결 요청을 기다림
     if(listen(s_sock, 5)==-1) error_handling("Listen Error");
 
-    pthread_create(&menu_handling,NULL,menu_thread__handling,(void *)NULL);
+    pthread_create(&menu_handling,NULL,menu_thread_handling,(void *)NULL);
 
     while(1)
     {

@@ -194,6 +194,7 @@ void *handle_clnt(void *arg) //in thread
 			}
 
 }
+
 	memset(msg,0,sizeof(msg));
 }
 

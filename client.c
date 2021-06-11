@@ -365,10 +365,10 @@ void menu()
 {
     system("clear");
     printf(" **** Chat Client ****\n");
-    printf(" server port : %s \n", s_port);
-    printf(" client IP   : %s \n", c_ip);
+    printf(" server port : %s \n", serv_port);
+    printf(" client IP   : %s \n", clnt_ip);
     printf(" chat name   : %s \n", name);
-    printf(" server time : %s \n", s_time);
+    printf(" server time : %s \n", serv_time);
     printf(" ************* menu ***************\n");
     printf(" if you want to select menu -> !menu\n");
     printf(" **********************************\n");

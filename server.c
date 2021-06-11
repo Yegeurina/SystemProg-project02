@@ -25,9 +25,9 @@ int clnt_cnt = 0;         //how much clnt ?
 int clnt_socks[MAX_CLNT]; // max join 100, socket [100]
 pthread_mutex_t mutx;
 
-char logFileName[] ="./LogFile.txt";
+char logFileName[] = "./LogFile.txt";
 char Log[MAX_LOG][BUF_SIZE];
-int log_line=0;
+int log_line = 0;
 
 struct tm *t;
 time_t timer;
@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
     //socket create, and thread ready
 
     /** time log **/
-    timer=time(NULL);
-    t=localtime(&timer);
+    timer = time(NULL);
+    t = localtime(&timer);
 
     if (argc != 2)
     {
@@ -67,13 +67,12 @@ int main(int argc, char *argv[])
     if (listen(serv_sock, 5) == -1)
         error_handling("listen() error");
 
-
-
     //error check
     while (1)
     { //loop accept
         t = localtime(&timer);
-        if(exit_flag==1)    break;
+        if (exit_flag == 1)
+            break;
         if (clnt_cnt < MAX_CLNT)
         {
             clnt_adr_sz = sizeof(clnt_adr);
@@ -88,8 +87,21 @@ int main(int argc, char *argv[])
             printf(" Connceted client IP : %s ", inet_ntoa(clnt_adr.sin_addr));
             printf("(%d-%d-%d %d:%d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min); //join time
             printf(" User (%d/100)\n", clnt_cnt);
+            if (clnt_cnt == 0)
+            {
+                char serv_exit;
+                printf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
+                scanf("%c", &serv_exit);
+                getchar();
+                if (serv_exit == 'q' || serv_exit == 'Q')
+                {
+                    exit_flag = 1;
+                    break;
+                }
+            }
         }
-        else{
+        else
+        {
             printf("Too many User\n");
         }
     }
@@ -124,19 +136,18 @@ void *handle_clnt(void *arg) //in thread
     char result_c[100];
 
     char flag[2];
-   
 
     while (1)
-    { 
+    {
         read(clnt_sock, flag, 1);
 
         if (strcmp(flag, "`") == 0) //ducth pay
         {
 
-             printf("\n!---DutchPay---\n");
-            Log[log_line++]="\n!---DutchPay---\n";
-            printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
-            
+            printf("\n!---DutchPay---\n");
+            Log[log_line++] = "\n!---DutchPay---\n";
+            printf("(%4d-%02d-%02d %02d:%02d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
+
             read(clnt_sock, howm, 2); //People
             howmany = atoi(howm);
 
@@ -154,18 +165,16 @@ void *handle_clnt(void *arg) //in thread
             sprintf(result_c, "%d", result);
             strcat(msg, result_c); //msg add result
 
-
             strcat(msg, " won\n");
-            Log[log_line++]=msg;
+            Log[log_line++] = msg;
             str_len = strlen(msg);
         }
         else if (strcmp(flag, "_") == 0)
         {
-           
-            printf("\n!---File Transfer---\n");
-            Log[log_line++]="\n!---File Transfer---\n";
-            printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
+            printf("\n!---File Transfer---\n");
+            Log[log_line++] = "\n!---File Transfer---\n";
+            printf("(%4d-%02d-%02d %02d:%02d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
 
             memset(msg, 0, sizeof(msg));
             read(clnt_sock, name_cnt, 2);
@@ -186,7 +195,7 @@ void *handle_clnt(void *arg) //in thread
             strcat(msg, filebuf);
 
             str_len = strlen(msg);
-            Log[log_line++]=msg;
+            Log[log_line++] = msg;
             fclose(fp);
         }
 
@@ -194,8 +203,8 @@ void *handle_clnt(void *arg) //in thread
         {
 
             printf("\n!---File Download---\n");
-            Log[log_line++]="\n!---File Download---\n";
-            printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
+            Log[log_line++] = "\n!---File Download---\n";
+            printf("(%4d-%02d-%02d %02d:%02d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
 
             int ifsize = 0;
             char fsize[5];
@@ -213,13 +222,13 @@ void *handle_clnt(void *arg) //in thread
             write(clnt_sock, fsize, 5); //file size write good
 
             if (fp != NULL)
-            { //fail
+            {                                                     //fail
                 read_cnt = fread((void *)filebuf, 1, ifsize, fp); //file read
             }
 
             usleep(500000);
             strcpy(msg, filebuf); //go msg, filebuf
-            Log[log_line++]=msg;
+            Log[log_line++] = msg;
             fclose(fp);
         }
         else
@@ -230,8 +239,6 @@ void *handle_clnt(void *arg) //in thread
                 break;
             }
         }
-
-        
 
         send_msg(msg, str_len); //read and write all clnt_cnt[]
     }
@@ -248,23 +255,11 @@ void *handle_clnt(void *arg) //in thread
     }
     clnt_cnt--;
 
-    printf("\nUser(%d/%d)\n",clnt_cnt,MAX_CLNT);
-    printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
-    if(clnt_cnt == 0)
-    {
-        char serv_exit;
-        printf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
-        scanf("%c",&serv_exit);
-        getchar();
-        if(serv_exit=='q'||serv_exit=='Q')
-        {
-           exit_flag=1;
-        }   
-    }
+    printf("\nUser(%d/%d)\n", clnt_cnt, MAX_CLNT);
+    printf("(%4d-%02d-%02d %02d:%02d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
+
     pthread_mutex_unlock(&mutx);
     close(clnt_sock);
-
-    
 
     return NULL;
 }
@@ -274,12 +269,13 @@ void send_msg(char *msg, int len)
     int i;
     pthread_mutex_lock(&mutx);
     printf("\n");
-    for(i=0;i<len;i++){
-        printf("%c",msg[i]);
-        Log[log_line][i]=msg[i];
+    for (i = 0; i < len; i++)
+    {
+        printf("%c", msg[i]);
+        Log[log_line][i] = msg[i];
     }
     log_line++;
-    printf("\n(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
+    printf("\n(%4d-%02d-%02d %02d:%02d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
     for (i = 0; i < clnt_cnt; i++) //all clnt
         write(clnt_socks[i], msg, len);
     pthread_mutex_unlock(&mutx);
@@ -297,7 +293,7 @@ char *serverState(int count)
     char *stateMsg = malloc(sizeof(char) * 20);
     strcpy(stateMsg, "None");
 
-    if (count < MAX_CLNT/2)
+    if (count < MAX_CLNT / 2)
         strcpy(stateMsg, "Good");
     else
         strcpy(stateMsg, "Bad");
@@ -310,9 +306,9 @@ void menu(char port[])
     system("clear");
 
     printf("***** chat server *****\n");
-    printf("server port : %s\n",port);
-    printf("server state : %s\n",serverState(clnt_cnt));
-    printf("max connection : %d\n",MAX_CLNT);
+    printf("server port : %s\n", port);
+    printf("server state : %s\n", serverState(clnt_cnt));
+    printf("max connection : %d\n", MAX_CLNT);
 
     printf("\n***** LOG *****\n");
 }

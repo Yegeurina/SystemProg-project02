@@ -11,6 +11,7 @@
 #define BUF_SIZE 1000
 #define MAX_CLNT 10
 #define MAX_IP 30
+#define MAX_LOG 100000
 
 void *handle_clnt(void *arg);
 void send_msg(char *msg, int len);
@@ -23,6 +24,10 @@ int exit_flag = 0;
 int clnt_cnt = 0;         //how much clnt ?
 int clnt_socks[MAX_CLNT]; // max join 100, socket [100]
 pthread_mutex_t mutx;
+
+char logFileName[] ="./LogFile.txt";
+char Log[MAX_LOG][BUF_SIZE];
+int log_line=0;
 
 struct tm *t;
 time_t timer;
@@ -61,6 +66,8 @@ int main(int argc, char *argv[])
         error_handling("bind() error");
     if (listen(serv_sock, 5) == -1)
         error_handling("listen() error");
+
+
 
     //error check
     while (1)
@@ -127,6 +134,7 @@ void *handle_clnt(void *arg) //in thread
         {
 
              printf("\n!---DutchPay---\n");
+            Log[log_line++]="\n!---DutchPay---\n";
             printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
             
             read(clnt_sock, howm, 2); //People
@@ -148,12 +156,14 @@ void *handle_clnt(void *arg) //in thread
 
 
             strcat(msg, " won\n");
+            Log[log_line++]=msg;
             str_len = strlen(msg);
         }
         else if (strcmp(flag, "_") == 0)
         {
            
             printf("\n!---File Transfer---\n");
+            Log[log_line++]="\n!---File Transfer---\n";
             printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
 
@@ -176,6 +186,7 @@ void *handle_clnt(void *arg) //in thread
             strcat(msg, filebuf);
 
             str_len = strlen(msg);
+            Log[log_line++]=msg;
             fclose(fp);
         }
 
@@ -183,6 +194,7 @@ void *handle_clnt(void *arg) //in thread
         {
 
             printf("\n!---File Download---\n");
+            Log[log_line++]="\n!---File Download---\n";
             printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
             int ifsize = 0;
@@ -190,7 +202,7 @@ void *handle_clnt(void *arg) //in thread
             memset(msg, 0, sizeof(msg));
             read(clnt_sock, name_cnt, 2);
             read(clnt_sock, filename, atoi(name_cnt)); //filename read
-            //good
+
             fp = fopen(filename, "rb"); //file open
 
             fseek(fp, 0, SEEK_END);
@@ -204,11 +216,12 @@ void *handle_clnt(void *arg) //in thread
             { //fail
                 read_cnt = fread((void *)filebuf, 1, ifsize, fp); //file read
             }
+
             usleep(500000);
             strcpy(msg, filebuf); //go msg, filebuf
+            Log[log_line++]=msg;
             fclose(fp);
         }
-
         else
         {
             str_len = read(clnt_sock, msg, sizeof(msg));
@@ -261,7 +274,11 @@ void send_msg(char *msg, int len)
     int i;
     pthread_mutex_lock(&mutx);
     printf("\n");
-    for(i=0;i<len;i++)printf("%c",msg[i]);
+    for(i=0;i<len;i++){
+        printf("%c",msg[i]);
+        Log[log_line][i]=msg[i];
+    }
+    log_line++;
     printf("\n(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
     for (i = 0; i < clnt_cnt; i++) //all clnt
         write(clnt_socks[i], msg, len);

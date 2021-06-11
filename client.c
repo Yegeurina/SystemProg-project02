@@ -17,6 +17,7 @@ void error_handling(char *msg);
 
 void menu();
 void changeName();
+void dutchPay(int sock);
 void menuOptions(int sock);
 void filetransfer(int sock);
 void filedownload(int sock);
@@ -85,20 +86,7 @@ void *send_msg(void *arg)
 	int sock = *((int *)arg);
 	char name_msg[NORMAL_SIZE + BUF_SIZE];
 	char myInfo[BUF_SIZE];
-	char *who = NULL;
-	char temp[BUF_SIZE];
-	int price;
-	char totalprice[100];
-	int howmany;
-	char howm[100];
-
-	int gamenum;
-	char gamec[100];
-
-	char under[] = "under\n";
-	char up[] = "up\n";
-	char please[] = "please number\n";
-	int k = 0;
+	
 
 	/** send join messge **/
 	printf(" >> join the chat !! \n");
@@ -116,23 +104,10 @@ void *send_msg(void *arg)
 		}
 
 		if (flagz == 1) //ducth pay
-		{
-
-			strcpy(msg, "`"); //function use flag
-			write(sock, msg, 1);
-
-			printf("Input How many? : ");
-			scanf("%d", &howmany);
-			sprintf(howm, "%d", howmany);
-			write(sock, howm, 2); //People
-
-			printf("Input total price : ");
-			scanf("%d", &price);
-			sprintf(totalprice, "%d", price);
-			write(sock, totalprice, 10); //Total Price
-
-			flagz = 0;
+		{	
 			memset(msg, 0, sizeof(msg));
+			dutchPay(sock);
+			flagz = 0;
 			continue;
 		}
 		else if (flagz == 2)
@@ -153,7 +128,7 @@ void *send_msg(void *arg)
 			continue;
 		}
 
-		else if (!strcmp(msg, "q\n") || !strcmp(msg, "Q\n"))
+		if (!strcmp(msg, "q\n") || !strcmp(msg, "Q\n"))
 		{
 			close(sock);
 			exit(0);
@@ -221,7 +196,7 @@ void menuOptions(int sock)
     printf("2. clear / update\n");
     printf("3. dutchpay\n");
     printf("4. file transfer(Only Text file)\n");
-    printf("5. file download(Only Text file)\n");
+    printf("5. Log file download(Only Text file)\n");
     printf("The other key is cancel\n");
     printf("\n********************\n");
     printf("\n>> ");
@@ -257,6 +232,28 @@ void menuOptions(int sock)
             break;
     }
 }
+
+void dutchPay(int sock)
+{
+	int price;
+	char totalprice[100];
+	int howmany;
+	char howm[100];
+
+	strcpy(msg, "`"); //function use flag
+	write(sock, msg, 1);
+
+	printf("Input How many? : ");
+	scanf("%d", &howmany);
+	sprintf(howm, "%d", howmany);
+	write(sock, howm, 2); //People
+
+	printf("Input total price : ");
+	scanf("%d", &price);
+	sprintf(totalprice, "%d", price);
+	write(sock, totalprice, 10); //Total Price
+}
+
 void filetransfer(int sock)
 {
 

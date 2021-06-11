@@ -201,7 +201,7 @@ void *handle_clnt(void *arg) //in thread
             
             fp=fopen(filename,"wb");
             for(i=0;i<log_line;i++)
-                fputs(Log[i]);
+                fputs(Log[i],fp);
             fclose(fp);
 
             fp = fopen(filename, "rb"); //file open

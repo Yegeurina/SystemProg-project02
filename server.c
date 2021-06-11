@@ -65,7 +65,18 @@ int main(int argc, char *argv[])
     while (1)
     { //loop accept
         t = localtime(&timer);
-        if (clnt_cnt < MAX_CLNT)
+        if(clnt_cnt == 0)
+        {
+            char serv_exit;
+            pritnf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
+            scanf("%c",serv_exit);
+            getchar()
+            if(serv_exit=='q'||serv_exit=='Q')
+            {
+                break;
+            }
+        }
+        else if (clnt_cnt < MAX_CLNT)
         {
             clnt_adr_sz = sizeof(clnt_adr);
             clnt_sock = accept(serv_sock, (struct sockaddr *)&clnt_adr, &clnt_adr_sz);

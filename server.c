@@ -145,7 +145,7 @@ void *handle_clnt(void *arg) //in thread
         {
 
             printf("\n!---DutchPay---\n");
-            Log[log_line++] = "\n!---DutchPay---\n";
+            strcpy(Log[log_line++] ,"\n!---DutchPay---\n");
             printf("(%4d-%02d-%02d %02d:%02d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
 
             read(clnt_sock, howm, 2); //People
@@ -166,14 +166,13 @@ void *handle_clnt(void *arg) //in thread
             strcat(msg, result_c); //msg add result
 
             strcat(msg, " won\n");
-            Log[log_line++] = msg;
             str_len = strlen(msg);
         }
         else if (strcmp(flag, "_") == 0)
         {
 
             printf("\n!---File Transfer---\n");
-            Log[log_line++] = "\n!---File Transfer---\n";
+            strcpy(Log[log_line++],"\n!---File Transfer---\n");
             printf("(%4d-%02d-%02d %02d:%02d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
 
             memset(msg, 0, sizeof(msg));
@@ -195,7 +194,6 @@ void *handle_clnt(void *arg) //in thread
             strcat(msg, filebuf);
 
             str_len = strlen(msg);
-            Log[log_line++] = msg;
             fclose(fp);
         }
 
@@ -203,7 +201,7 @@ void *handle_clnt(void *arg) //in thread
         {
 
             printf("\n!---File Download---\n");
-            Log[log_line++] = "\n!---File Download---\n";
+            strcpy(Log[log_line++] ,"\n!---File Download---\n");
             printf("(%4d-%02d-%02d %02d:%02d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min);
 
             int ifsize = 0;
@@ -228,7 +226,6 @@ void *handle_clnt(void *arg) //in thread
 
             usleep(500000);
             strcpy(msg, filebuf); //go msg, filebuf
-            Log[log_line++] = msg;
             fclose(fp);
         }
         else

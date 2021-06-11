@@ -145,6 +145,7 @@ void *handle_clnt(void *arg) //in thread
             sprintf(result_c, "%d", result);
             strcat(msg, result_c); //msg add result
 
+
             strcat(msg, " won -");
             str_len = strlen(msg);
         }
@@ -153,6 +154,7 @@ void *handle_clnt(void *arg) //in thread
            
             printf("\n!---File Transfer---");
             printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
+
 
             memset(msg, 0, sizeof(msg));
             read(clnt_sock, name_cnt, 2);

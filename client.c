@@ -154,23 +154,14 @@ void *recv_msg(void *arg)
 		if (flagz == 3 || flagzz == 9)
 		{
 
-			FILE *fp;
-			char filebuf[100];
 			memset(filebuf, 0x00, 100);
-			int read_cnt;
-			char filesize[5];
-			int ifsize = 0;
+			char filesize[NORMAL_SIZE + BUF_SIZE];
 
 			strcpy(filesize, name_msg); //read name_msg, filesize
-			fp = fopen(filename, "wb");
-
-			ifsize = atoi(filesize);
 
 			memset(name_msg, 0, sizeof(name_msg)); //name_msg = 0
 			usleep(400000);
 
-			read_cnt = read(sock, filebuf, ifsize);	  //file read
-			fwrite((void *)filebuf, 1, read_cnt, fp); //file fwrite
 			printf(" %s is stored!!\n", filename);
 			fclose(fp);
 

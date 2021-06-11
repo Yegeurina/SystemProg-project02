@@ -251,7 +251,7 @@ void *handle_clnt(void *arg) //in thread
 
     pthread_mutex_unlock(&mutx);
     close(clnt_sock);
-    if (clnt_cnt == 0)
+    /*if (clnt_cnt == 0)
     {
         char serv_exit;
         printf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
@@ -263,7 +263,7 @@ void *handle_clnt(void *arg) //in thread
              exit_flag = 1;
              pthread_exit(0);
         }
-    }
+    }*/
 
     return NULL;
 }

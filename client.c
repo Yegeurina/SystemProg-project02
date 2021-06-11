@@ -153,8 +153,6 @@ void *recv_msg(void *arg)
 	{
 		if (flagz == 3 || flagzz == 9)
 		{
-
-			memset(filebuf, 0x00, 100);
 			char filesize[NORMAL_SIZE + BUF_SIZE];
 
 			strcpy(filesize, name_msg); //read name_msg, filesize
@@ -163,7 +161,6 @@ void *recv_msg(void *arg)
 			usleep(400000);
 
 			printf(" %s is stored!!\n", filename);
-			fclose(fp);
 
 			flagz = 0;
 			flagzz = 0;

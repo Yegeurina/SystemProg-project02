@@ -1,294 +1,253 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<string.h>
-#include<arpa/inet.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<pthread.h>
-#include<time.h>
- 
-#define BUF_SIZE 100
-#define MAX_CLNT 100 //max socket comunication 100
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <time.h>
+
+#define BUF_SIZE 1000
+#define MAX_CLNT 10
 #define MAX_IP 30
- 
-void * handle_clnt(void *arg);
+
+void *handle_clnt(void *arg);
 void send_msg(char *msg, int len);
 void error_handling(char *msg);
-char* serverState(int count);
+char *serverState(int count);
 void menu(char port[]);
 char msgpay[BUF_SIZE];
-int flagz=0;
-//volatile int gameflag=0;
+int flagz = 0;
 
-/****************************/
- 
-int clnt_cnt=0;//how much clnt ?
+int clnt_cnt = 0;         //how much clnt ?
 int clnt_socks[MAX_CLNT]; // max join 100, socket [100]
 pthread_mutex_t mutx;
- 
+
+struct tm *t;
+time_t timer;
+
 int main(int argc, char *argv[])
 {
     int serv_sock, clnt_sock;
     struct sockaddr_in serv_adr, clnt_adr;
     int clnt_adr_sz;
     pthread_t t_id;
- //socket create, and thread ready
+    //socket create, and thread ready
+
     /** time log **/
-    struct tm *t;
-    time_t timer = time(NULL);
+    timer=time(NULL);
     t=localtime(&timer);
- 
+
     if (argc != 2)
     {
         printf(" Usage : %s <port>\n", argv[0]);
         exit(1);
     }
- //port input please
+    //port input please
     menu(argv[1]);
- //information
+
+    //information
     pthread_mutex_init(&mutx, NULL);
-    serv_sock=socket(PF_INET, SOCK_STREAM, 0);
-    
+    serv_sock = socket(PF_INET, SOCK_STREAM, 0);
+
     memset(&serv_adr, 0, sizeof(serv_adr));
-    serv_adr.sin_family=AF_INET;
-    serv_adr.sin_addr.s_addr=htonl(INADDR_ANY);
-    serv_adr.sin_port=htons(atoi(argv[1]));
- //in serv_sock
-    if (bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr))==-1)
+    serv_adr.sin_family = AF_INET;
+    serv_adr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_adr.sin_port = htons(atoi(argv[1]));
+
+    //in serv_sock
+    if (bind(serv_sock, (struct sockaddr *)&serv_adr, sizeof(serv_adr)) == -1)
         error_handling("bind() error");
-    if (listen(serv_sock, 5)==-1)
+    if (listen(serv_sock, 5) == -1)
         error_handling("listen() error");
- //error check
-    while(1)
-    {//loop accept
-        t=localtime(&timer);
-        clnt_adr_sz=sizeof(clnt_adr);
-        clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_adr, &clnt_adr_sz);
- 
-        pthread_mutex_lock(&mutx);
-        clnt_socks[clnt_cnt++]=clnt_sock;//new client join macthing clnt_sock[]
-        pthread_mutex_unlock(&mutx);
- 
-        pthread_create(&t_id, NULL, handle_clnt, (void*)&clnt_sock);//thread
-        pthread_detach(t_id);
-        printf(" Connceted client IP : %s ", inet_ntoa(clnt_adr.sin_addr));
-        printf("(%d-%d-%d %d:%d)\n", t->tm_year+1900, t->tm_mon+1, t->tm_mday,
-        t->tm_hour, t->tm_min);//join time
-        printf(" chatter (%d/100)\n", clnt_cnt);
+
+    //error check
+    while (1)
+    { //loop accept
+        t = localtime(&timer);
+        if (clnt_cnt < MAX_CLNT)
+        {
+            clnt_adr_sz = sizeof(clnt_adr);
+            clnt_sock = accept(serv_sock, (struct sockaddr *)&clnt_adr, &clnt_adr_sz);
+
+            pthread_mutex_lock(&mutx);
+            clnt_socks[clnt_cnt++] = clnt_sock; //new client join macthing clnt_sock[]
+            pthread_mutex_unlock(&mutx);
+
+            pthread_create(&t_id, NULL, handle_clnt, (void *)&clnt_sock); //thread
+            pthread_detach(t_id);
+            printf(" Connceted client IP : %s ", inet_ntoa(clnt_adr.sin_addr));
+            printf("(%d-%d-%d %d:%d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min); //join time
+            printf(" chatter (%d/100)\n", clnt_cnt);
+        }
+        else{
+            printf("Too many User\n");
+        }
     }
     close(serv_sock);
     return 0;
 }
- 
+
 void *handle_clnt(void *arg) //in thread
 {
-    int clnt_sock=*((int*)arg);
-    int str_len=0, i;
+    int clnt_sock = *((int *)arg);
+    int str_len = 0, i;
     char msg[BUF_SIZE];
 
     char filename[100];
-	FILE *fp;
+    FILE *fp;
     char filebuf[100];
-	
-    char name_cnt[2]; 
+
+    char name_cnt[2];
 
     size_t bufsize = 0;
     int nbyte;
- memset(filebuf, 0x00,30);  
+    memset(filebuf, 0x00, 30);
     char filesize[5];
 
     int read_cnt;
 
-
     char totalprice[100];
     char howm[100];
-    int price =1;
-    int howmany =1;
-    int result=1;
+    int price = 1;
+    int howmany = 1;
+    int result = 1;
     char result_c[100];
 
-    int gamenum;
-    char gamec[100];
-    char temp[100];
-
     char flag[2];
-    char gamemsg[20];
-
-    int win,won;
-
-    char under[2];
-    char up[2];
-    char please[2];
-
-    won = (rand() %1000) +1;
    
 
+    while (1)
+    { //caculater ++ function
+        read(clnt_sock, flag, 1);
 
-    while(1)
-{//caculater ++ function
-	read(clnt_sock,flag,1);
+        if (strcmp(flag, "`") == 0) //ducth pay
+        {
 
+             printf("\n!---DutchPay---");
+            printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
+            
+            read(clnt_sock, howm, 2); //People
+            howmany = atoi(howm);
 
-	if(strcmp(flag,"`")==0)//ducth pay
-	{
+            read(clnt_sock, totalprice, 10); //Total Price
+            price = atoi(totalprice);
 
-		read(clnt_sock, howm, 2);//People
-		howmany = atoi(howm);
+            strcpy(msg, " people : ");
+            strcat(msg, howm);
 
-		read(clnt_sock, totalprice, 10);//Total Price
-		price = atoi(totalprice);
+            strcat(msg, ",  totalprice : "); //msg add information
+            strcat(msg, totalprice);
 
+            strcat(msg, " won ,  Per person: ");
+            result = price / howmany; // caculate
+            sprintf(result_c, "%d", result);
+            strcat(msg, result_c); //msg add result
 
-		strcpy(msg," people : ");
-		strcat(msg,howm);
+            strcat(msg, " won -");
+            str_len = strlen(msg);
+        }
+        else if (strcmp(flag, "_") == 0)
+        {
+           
+            printf("\n!---File Transfer---");
+            printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
-		strcat(msg,",  totalprice : ");//msg add information
-		strcat(msg,totalprice);
+            memset(msg, 0, sizeof(msg));
+            read(clnt_sock, name_cnt, 2);
+            read(clnt_sock, filename, atoi(name_cnt)); //filename read
+            fp = fopen(filename, "wb");
 
-		strcat(msg," won ,  Per person: ");
-		result = price/howmany; // caculate
-		sprintf(result_c,"%d",result);
-		strcat(msg,result_c);//msg add result
+            read(clnt_sock, filesize, 5); //file size read
 
-		strcat(msg," won -");
-		str_len=strlen(msg); 
-}
+            int asize = atoi(filesize);
+            read_cnt = read(clnt_sock, filebuf, asize); //file read
 
-	else if (strcmp(flag,")")==0)
-	{	
-	sprintf(under,"%d",1);
-	sprintf(up,"%d",2);
-	sprintf(please,"%d",3);
+            fwrite((void *)filebuf, 1, read_cnt, fp); //file fwrite
 
-	while(strcmp(flag,")")==0)
-{
-	int aa=0;
-	int cc=0;
-		read(clnt_sock,gamec,4);
-			
-		win=atoi(gamec);
+            strcpy(msg, filesize);
 
+            strcpy(msg, filename);
+            strcat(msg, " stored :\n");
+            strcat(msg, filebuf);
 
-	//	strcpy(msg,gamec);
-		str_len=strlen(msg);
+            str_len = strlen(msg);
+            fclose(fp);
+        }
 
+        else if (strcmp(flag, "}") == 0)
+        {
 
-			if(won==win)
-			{
-			//strcpy(msg, "Clear! minigame Winner is -> ");
-		//	gameflag=0;
-			write(clnt_sock,")",1);
-			break;
-			}
-			else if(win>won)
-			{
-				write(clnt_sock,under,2);
-			}
-			else if(win<won)
-			{	write(clnt_sock,up,2);
-			}
-			else
-			{
-				write(clnt_sock,please,2);
-			}
+            printf("\n!---File Download---");
+            printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
-}
-	memset(msg,0,sizeof(msg));
-}
+            int ifsize = 0;
+            char fsize[5];
+            memset(msg, 0, sizeof(msg));
+            read(clnt_sock, name_cnt, 2);
+            read(clnt_sock, filename, atoi(name_cnt)); //filename read
+            //good
+            fp = fopen(filename, "rb"); //file open
 
-	else if (strcmp(flag,"_")==0)
-	{
+            fseek(fp, 0, SEEK_END);
+            ifsize = ftell(fp); //fsize == filesize
+            fseek(fp, 0, SEEK_SET);
 
-		memset(msg,0,sizeof(msg));
-		read(clnt_sock, name_cnt,2);
-		read(clnt_sock, filename, atoi(name_cnt));//filename read
-		fp=fopen(filename,"wb");
-		
-	read(clnt_sock,filesize,5); //file size read
+            sprintf(fsize, "%d", ifsize);
+            write(clnt_sock, fsize, 5); //file size write good
 
-	int asize = atoi(filesize);
-	read_cnt=read(clnt_sock,filebuf,asize);//file read
+            if (fp != NULL)
+            { //fail
 
-	fwrite((void*)filebuf, 1, read_cnt, fp);//file fwrite
-		
-	strcpy(msg,filesize);
+                read_cnt = fread((void *)filebuf, 1, ifsize, fp); //file read
+            }
+            usleep(500000);
+            strcpy(msg, filebuf); //go msg, filebuf
+            fclose(fp);
+        }
 
-		strcpy(msg,filename);
-		strcat(msg," stored :\n");
-		strcat(msg,filebuf);
-		
-		str_len=strlen(msg);
-		fclose(fp);
+        else
+        {
+            str_len = read(clnt_sock, msg, sizeof(msg));
+            if (str_len == 0)
+            {
+                break;
+            }
+        }
 
-	}
+        printf("%s",msg);
+        printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
-	else if (strcmp(flag,"}")==0)
-	{
-int ifsize = 0;
-char fsize[5];
-		memset(msg,0,sizeof(msg));
-		read(clnt_sock, name_cnt,2);
-		read(clnt_sock, filename, atoi(name_cnt));//filename read
-		//good
-		fp=fopen(filename,"rb");//file open
-
-	fseek(fp, 0, SEEK_END);
-	ifsize = ftell(fp);//fsize == filesize
-	fseek(fp, 0, SEEK_SET);
-
-	sprintf(fsize,"%d",ifsize);
-	write(clnt_sock,fsize,5);//file size write good 
-
-
-	if(fp!=NULL)
-	{//fail
-
-		read_cnt=fread((void*)filebuf,1,ifsize,fp);//file read
-
-	}
-	usleep(500000);
-	strcpy(msg,filebuf);//go msg, filebuf
-	fclose(fp);
-
-	}
-
-
-else
-{
-str_len=read(clnt_sock, msg, sizeof(msg));
-//30000===================================================
-if(str_len==0)
-{break;}
-}
-
-      send_msg(msg, str_len);//read and write all clnt_cnt[]
- }
+        send_msg(msg, str_len); //read and write all clnt_cnt[]
+    }
     // remove disconnected client
     pthread_mutex_lock(&mutx);
-    for (i=0; i<clnt_cnt; i++)
+    for (i = 0; i < clnt_cnt; i++)
     {
-        if (clnt_sock==clnt_socks[i])
+        if (clnt_sock == clnt_socks[i])
         {
-            while(i++<clnt_cnt-1)
-                clnt_socks[i]=clnt_socks[i+1];
+            while (i++ < clnt_cnt - 1)
+                clnt_socks[i] = clnt_socks[i + 1];
             break;
         }
     }
     clnt_cnt--;
+
+    printf("User(%d/%d)",client_cnt,MAX_CLIENT);
+    printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
+
     pthread_mutex_unlock(&mutx);
     close(clnt_sock);
     return NULL;
 }
 
-
-
-void send_msg(char* msg, int len)
+void send_msg(char *msg, int len)
 {
     int i;
     pthread_mutex_lock(&mutx);
 
-    for (i=0; i<clnt_cnt; i++)//all clnt
+    for (i = 0; i < clnt_cnt; i++) //all clnt
         write(clnt_socks[i], msg, len);
     pthread_mutex_unlock(&mutx);
 }
@@ -299,26 +258,28 @@ void error_handling(char *msg)
     fputc('\n', stderr);
     exit(1);
 }
- 
-char* serverState(int count)
+
+char *serverState(int count)
 {
-    char* stateMsg = malloc(sizeof(char) * 20);
-    strcpy(stateMsg ,"None");
-    
-    if (count < 5)
+    char *stateMsg = malloc(sizeof(char) * 20);
+    strcpy(stateMsg, "None");
+
+    if (count < MAX_CLNT/2)
         strcpy(stateMsg, "Good");
     else
         strcpy(stateMsg, "Bad");
-    
+
     return stateMsg;
-}        
- 
+}
+
 void menu(char port[])
 {
     system("clear");
-    printf(" **** moon/sun chat server ****\n");
-    printf(" server port    : %s\n", port);
-    printf(" server state   : %s\n", serverState(clnt_cnt));
-    printf(" max connection : %d\n", MAX_CLNT);
-    printf(" ****          Log         ****\n\n");
+
+    printf("***** chat server *****\n");
+    printf("server port : %s\n",port);
+    printf("server state : %s\n",serverState(client_cnt));
+    printf("max connection : %d\n",MAX_CLIENT);
+
+    printf("\n***** LOG *****\n");
 }

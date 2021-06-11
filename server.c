@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         if(clnt_cnt == 0)
         {
             char serv_exit;
-            pritnf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
+            printf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
             scanf("%c",&serv_exit);
             getchar();
             if(serv_exit=='q'||serv_exit=='Q')

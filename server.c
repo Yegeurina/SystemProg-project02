@@ -236,7 +236,7 @@ void *handle_clnt(void *arg) //in thread
     }
     clnt_cnt--;
 
-    printf("User(%d/%d)",client_cnt,MAX_CLIENT);
+    printf("User(%d/%d)",clnt_cnt,MAX_CLNT);
     printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
     pthread_mutex_unlock(&mutx);
@@ -280,8 +280,8 @@ void menu(char port[])
 
     printf("***** chat server *****\n");
     printf("server port : %s\n",port);
-    printf("server state : %s\n",serverState(client_cnt));
-    printf("max connection : %d\n",MAX_CLIENT);
+    printf("server state : %s\n",serverState(clnt_cnt));
+    printf("max connection : %d\n",MAX_CLNT);
 
     printf("\n***** LOG *****\n");
 }

@@ -18,11 +18,8 @@ void error_handling(char *msg);
 void menu();
 void changeName();
 void menuOptions(int sock);
-void dutchpay();
-void minigame();
 void filetransfer(int sock);
 void filedownload(int sock);
-void filenamewrite(int sock);
 
 char filename[30];
 char name[NORMAL_SIZE] = "[DEFALT]"; // name
@@ -138,30 +135,7 @@ void *send_msg(void *arg)
 			memset(msg, 0, sizeof(msg));
 			continue;
 		}
-
 		else if (flagz == 2)
-		{
-
-			while (flagz == 2) //minigame
-			{				   //int i;
-
-				strcpy(msg, ")");
-				write(sock, msg, 1);
-				memset(msg, 0, sizeof(msg));
-
-				printf("\n Guess number!! choose between 1~999 (second line is fake) : \n");
-				scanf("%d", &gamenum);
-				//printf(" Enter Please \n");
-				sprintf(gamec, "%d", gamenum);
-				write(sock, gamec, 4);
-			}
-
-			flagz = 0;
-			memset(msg, 0, sizeof(msg));
-			continue; //dkfo write tlfgodgkwl dksgrldnlgo
-		}
-
-		else if (flagz == 3)
 		{
 			memset(name_msg, 0, sizeof(name_msg));
 			filetransfer(sock);
@@ -169,11 +143,10 @@ void *send_msg(void *arg)
 			continue;
 		}
 
-		else if (flagz == 4)
+		else if (flagz == 3)
 		{
 			memset(name_msg, 0, sizeof(name_msg));
-			filenamewrite(sock);
-
+			filedownload(sock);
 			flagzz = 9;
 			flagz = 0;
 			usleep(1000000);
@@ -186,9 +159,8 @@ void *send_msg(void *arg)
 			exit(0);
 		}
 
-		// send message qq, 2002
 		sprintf(name_msg, "%s %s", name, msg);
-		write(sock, name_msg, strlen(name_msg)); //2
+		write(sock, name_msg, strlen(name_msg));
 	}
 	return NULL;
 }
@@ -204,33 +176,7 @@ void *recv_msg(void *arg)
 	int a;
 	while (1)
 	{
-
-		if (flagz == 2)
-		{
-
-			read(sock, flg, 1);
-			a = atoi(flg);
-			if (a == 1)
-			{
-				printf("down..   \n ", flg);
-			}
-			else if (a == 2)
-			{
-				printf("up    \n ", flg);
-			}
-			else if (a == 3)
-			{
-				printf("error, retry  \n");
-			}
-			else if (strcmp(flg, ")") == 0)
-			{
-				printf("Congratulations! You are Winner!  \n");
-				memset(name_msg, 0, sizeof(name_msg));
-				flagz = 0;
-			}
-		}
-
-		else if (flagz == 4 || flagzz == 9)
+		if (flagz == 3 || flagzz == 9)
 		{
 
 			FILE *fp;
@@ -265,94 +211,52 @@ void *recv_msg(void *arg)
 		fputs(name_msg, stdout);
 	}
 	return NULL;
-} //flagz=2;
+} 
 
 void menuOptions(int sock)
 {
-	int select;
+    int select;
+    printf("\n\t***** menu mode *****\n");
+    printf("\t1. change name\n");
+    printf("\t2. clear / update\n");
+    printf("\t3. dutchpay\n");
+    printf("\t4. file transfer(Only Text file)\n");
+    printf("\t5. file download(Only Text file)\n");
+    printf("\tthe other key is cancel\n");
+    printf("\n\t********************\n");
+    printf("\n\t>> ");
 
-	// print menu
-	printf("\n\t**** menu mode ****\n");
-	printf("\t1. change name\n");
-	printf("\t2. clear/update\n\n");
-	printf("\t3. dutchpay\n\n");
-	printf("\t4. minigame\n\n");
-	printf("\t5. file transfer\n\n");
-	printf("\t6. file download\n\n");
-	printf("\tthe other key is cancel");
-	printf("\n\t*******************");
-	printf("\n\t>> ");
+    scanf("%d",&select);
+    getchar();
 
-	scanf("%d", &select);
-	getchar();
-	switch (select)
-	{
-	// change user name
-	case 1:
-		changeName();
-		flagz = 0;
-		break;
-
-	// console update(time, clear chatting log)
-	case 2:
-		menu();
-		flagz = 0;
-		break;
-
-	case 3:
-		printf("dutchpay funtion start\n");
-		flagz = 1;
-		break;
-
-	case 4:
-		printf("minigame funtion start\n");
-		flagz = 2;
-		break;
-
-	case 5:
-		printf("filetransfer funtion start\n");
-		flagz = 3;
-		break;
-
-	case 6:
-		printf("filedownload funtion start\n");
-		flagz = 4;
-		break;
-
-	// menu error
-	default:
-		printf("\tcancel.");
-		flagz = 0;
-		break;
-	}
+    switch(select)
+    {
+        case 1 :
+            changeName();
+            flag=0;
+            break;
+        case 2 :
+            menu();
+            flag=0;
+            break;
+        case 3 :
+            printf("\tdutchpay function start");
+            flag=1;
+            break;
+        case 4 :
+            printf("\tfiletransfer function start");
+            flag=2;
+            break;
+        case 5 : 
+            printf("\tfiledownload function start");
+            flag=3;
+            break;
+        default :
+            printf("\tcancel.");
+            flag=0;
+            break;
+    }
 }
-
-void dutchpay()
-{
-	/*
-int price;
-char totalprice[100];
-int howmany;
-char howm[100];
-		strcpy(msg,"!price");
-		write(sock, msg, strlen(msg));
-
-	printf("Input total price : ");
-	scanf("%d",&price);
-	sprintf(totalprice,"%d",price);
-	write(sock, totalprice, strlen(totalprice));
-
-	printf("Input How may? : ");
-	scanf("%d",&howmany);
-	sprintf(howm,"%d",howmany);
-	write(sock, howm, strlen(howm));
-*/
-}
-
-void minigame()
-{
-}
-
 void filetransfer(int sock)
 {
 
@@ -365,7 +269,6 @@ void filetransfer(int sock)
 
 	int ifsize = 0;
 	char fsize[5];
-	//memset(filebuf, 0x00, 256);
 
 	strcpy(msg, "_");
 	write(sock, msg, 1); //flag write
@@ -374,7 +277,7 @@ void filetransfer(int sock)
 	fgets(filename, 20, stdin);
 
 	for (i = 0; filename[i] != 0; i++)
-	{ // if ==\n
+	{
 		if (filename[i] == '\n')
 		{
 			filename[i] = 0;
@@ -415,39 +318,6 @@ void filetransfer(int sock)
 
 void filedownload(int sock)
 {
-	/*
-int i = 0;
-
-FILE *fp;
-char filebuf[100];
- memset(filebuf, 0x00,30); 
-int read_cnt;
-char name_cnt[2];
-char filesize[5];
-int ifsize = 0;
-char fsize[5];
-char temp[10];
-//memset(filebuf, 0x00, 256);
-
-	read(sock,filesize,5); //file size read
-	fp=fopen(filename,"wb");
-  //  pthread_mutex_lock(&mutx);
-ifsize = atoi(filesize);	
-//printf("\n%s\n",filesize);//size rhdqor;
-printf("\n%s\n",filename);
-printf("\n%s\n",filebuf);
-printf("\n%d\n",ifsize);
-
-	read_cnt=read(sock,filebuf,ifsize);//file read
-
-	fwrite((void*)filebuf, 1, read_cnt, fp);//file fwrite	
- //   pthread_mutex_unlock(&mutx);
-	fclose(fp);
-*/
-}
-
-void filenamewrite(int sock)
-{
 	int i = 0;
 
 	FILE *fp;
@@ -457,7 +327,6 @@ void filenamewrite(int sock)
 	char filesize[5];
 	int ifsize = 0;
 	char fsize[5];
-	//memset(filebuf, 0x00, 256);
 
 	strcpy(msg, "}");
 	write(sock, msg, 1); //flag write
@@ -466,7 +335,7 @@ void filenamewrite(int sock)
 	fgets(filename, 20, stdin);
 
 	for (i = 0; filename[i] != 0; i++)
-	{ // if ==\n
+	{ 
 		if (filename[i] == '\n')
 		{
 			filename[i] = 0;
@@ -494,18 +363,16 @@ void changeName()
 
 void menu()
 {
-	system("clear");
-	printf(" **** moon/sum chatting client ****\n");
-	printf(" server port : %s \n", serv_port);
-	printf(" client IP   : %s \n", clnt_ip);
-	printf(" chat name   : %s \n", name);
-	printf(" server time : %s \n", serv_time);
-	printf(" ************* menu ***************\n");
-	printf(" if you want to select menu -> !menu\n");
-	printf(" 1. change name\n");
-	printf(" 2. clear/update\n");
-	printf(" **********************************\n");
-	printf(" Exit -> q & Q\n\n");
+    system("clear");
+    printf(" **** Chat Client ****\n");
+    printf(" server port : %s \n", s_port);
+    printf(" client IP   : %s \n", c_ip);
+    printf(" chat name   : %s \n", name);
+    printf(" server time : %s \n", s_time);
+    printf(" ************* menu ***************\n");
+    printf(" if you want to select menu -> !menu\n");
+    printf(" **********************************\n");
+    printf(" Exit -> q & Q\n\n");
 }
 
 void error_handling(char *msg)

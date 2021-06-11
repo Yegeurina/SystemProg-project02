@@ -121,12 +121,12 @@ void *send_msg(void *arg)
 			strcpy(msg, "`"); //function use flag
 			write(sock, msg, 1);
 
-			printf("Input How many? : ");
+			printf("\tInput How many? : ");
 			scanf("%d", &howmany);
 			sprintf(howm, "%d", howmany);
 			write(sock, howm, 2); //People
 
-			printf("Input total price : ");
+			printf("\tInput total price : ");
 			scanf("%d", &price);
 			sprintf(totalprice, "%d", price);
 			write(sock, totalprice, 10); //Total Price
@@ -240,19 +240,19 @@ void menuOptions(int sock)
             flagz=0;
             break;
         case 3 :
-            printf("\tdutchpay function start");
+            printf("\tdutchpay function start\n");
             flagz=1;
             break;
         case 4 :
-            printf("\tfiletransfer function start");
+            printf("\tfiletransfer function start\n");
             flagz=2;
             break;
         case 5 : 
-            printf("\tfiledownload function start");
+            printf("\tfiledownload function start\n");
             flagz=3;
             break;
         default :
-            printf("\tcancel.");
+            printf("\tcancel.\n");
             flagz=0;
             break;
     }
@@ -273,7 +273,7 @@ void filetransfer(int sock)
 	strcpy(msg, "_");
 	write(sock, msg, 1); //flag write
 
-	printf("Input filename :");
+	printf("\tInput filename :");
 	fgets(filename, 20, stdin);
 
 	for (i = 0; filename[i] != 0; i++)
@@ -331,7 +331,7 @@ void filedownload(int sock)
 	strcpy(msg, "}");
 	write(sock, msg, 1); //flag write
 
-	printf("Input filename :");
+	printf("\tInput filename :");
 	fgets(filename, 20, stdin);
 
 	for (i = 0; filename[i] != 0; i++)

@@ -146,7 +146,7 @@ void *handle_clnt(void *arg) //in thread
             strcat(msg, result_c); //msg add result
 
 
-            strcat(msg, " won -");
+            strcat(msg, " won\n");
             str_len = strlen(msg);
         }
         else if (strcmp(flag, "_") == 0)
@@ -171,7 +171,7 @@ void *handle_clnt(void *arg) //in thread
             strcpy(msg, filesize);
 
             strcpy(msg, filename);
-            strcat(msg, " stored :\n");
+            strcat(msg, "\nstored :\n");
             strcat(msg, filebuf);
 
             str_len = strlen(msg);
@@ -218,7 +218,7 @@ void *handle_clnt(void *arg) //in thread
             }
         }
 
-        printf("%s",msg);
+        printf("\n%s",msg);
         printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
         send_msg(msg, str_len); //read and write all clnt_cnt[]
@@ -236,7 +236,7 @@ void *handle_clnt(void *arg) //in thread
     }
     clnt_cnt--;
 
-    printf("User(%d/%d)",clnt_cnt,MAX_CLNT);
+    printf("\nUser(%d/%d)",clnt_cnt,MAX_CLNT);
     printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
 
     pthread_mutex_unlock(&mutx);

@@ -87,18 +87,7 @@ int main(int argc, char *argv[])
             printf(" Connceted client IP : %s ", inet_ntoa(clnt_adr.sin_addr));
             printf("(%d-%d-%d %d:%d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min); //join time
             printf(" User (%d/100)\n", clnt_cnt);
-            if (clnt_cnt == 0)
-            {
-                char serv_exit;
-                printf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
-                scanf("%c", &serv_exit);
-                getchar();
-                if (serv_exit == 'q' || serv_exit == 'Q')
-                {
-                    exit_flag = 1;
-                    break;
-                }
-            }
+            
         }
         else
         {
@@ -257,6 +246,18 @@ void *handle_clnt(void *arg) //in thread
 
     pthread_mutex_unlock(&mutx);
     close(clnt_sock);
+    if (clnt_cnt == 0)
+    {
+        char serv_exit;
+        printf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
+        scanf("%c", &serv_exit);
+        getchar();
+        if (serv_exit == 'q' || serv_exit == 'Q')
+        {
+             exit_flag = 1;
+             pthread_exit(0);
+        }
+    }
 
     return NULL;
 }

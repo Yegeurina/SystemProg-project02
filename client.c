@@ -171,7 +171,7 @@ void *recv_msg(void *arg)
 
 			read_cnt = read(sock, filebuf, ifsize);	  //file read
 			fwrite((void *)filebuf, 1, read_cnt, fp); //file fwrite
-			printf(" %s is stored!! ", filename);
+			printf(" %s is stored!!\n", filename);
 			fclose(fp);
 
 			flagz = 0;

@@ -198,6 +198,11 @@ void *handle_clnt(void *arg) //in thread
             memset(msg, 0, sizeof(msg));
             read(clnt_sock, name_cnt, 2);
             read(clnt_sock, filename, atoi(name_cnt)); //filename read
+            
+            fp=fopen(filename,"wb");
+            for(i=0;i<log_line;i++)
+                fputs(Log[i]);
+            fclose(fp);
 
             fp = fopen(filename, "rb"); //file open
 
@@ -252,6 +257,7 @@ void *handle_clnt(void *arg) //in thread
         printf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
         scanf("%c", &serv_exit);
         getchar();
+        printf("exitcode : %c\n",serv_exit);
         if (serv_exit == 'q' || serv_exit == 'Q')
         {
              exit_flag = 1;

@@ -248,7 +248,7 @@ void menuOptions(int sock)
             flagz=2;
             break;
         case 5 : 
-            printf("filedownload function start\n");
+            printf("f!meiledownload function start\n");
             flagz=3;
             break;
         default :

@@ -237,10 +237,6 @@ void *handle_clnt(void *arg) //in thread
 
     printf("\nUser(%d/%d)\n",clnt_cnt,MAX_CLNT);
     printf("(%4d-%02d-%02d %02d:%02d)\n",t->tm_year+1900,t->tm_mon+1,t->tm_mday,t->tm_hour,t->tm_min);
-
-    pthread_mutex_unlock(&mutx);
-    close(clnt_sock);
-
     if(clnt_cnt == 0)
     {
         char serv_exit;
@@ -252,6 +248,10 @@ void *handle_clnt(void *arg) //in thread
            exit_flag=1;
         }   
     }
+    pthread_mutex_unlock(&mutx);
+    close(clnt_sock);
+
+    
 
     return NULL;
 }

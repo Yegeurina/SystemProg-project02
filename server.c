@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("Too many User\n");
+            error_handling("Too Many User!");
         }
     }
     close(serv_sock);
@@ -257,16 +257,14 @@ void *handle_clnt(void *arg) //in thread
     if (clnt_cnt == 0)
     {
         char serv_exit;
-        printf("If you want close the socket, you press key only q & Q. If you not, just press the other key.");
-        scanf("%c", &serv_exit);
+        printf("\nIf you want close the socket, you press key only q & Q. If you not, just press the other key.");
+        serv_exit = getchar();
         getchar();
         printf("exitcode : %c\n",serv_exit);
-        if (serv_exit == 'q' || serv_exit == 'Q')
+        if (serv_exit=='q' || serv_exit=='Q')
         {
-             exit_flag = 1;
-             printf("GOOD BYE!");
-             close(serv_sock);
-             pthread_exit(0);
+            printf("Exit handling here");
+             error_handling("EXIT CODE!");
 
         }
     }

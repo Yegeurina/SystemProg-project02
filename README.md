@@ -18,9 +18,9 @@ gcc -o server server.c -lpthread
 > !menu
 > > change name   
 > > clear/update  
-> > dutchpay 
-> > filetransfer
-> > log file download
+> > dutchpay  
+> > filetransfer  
+> > log file download  
 
 
 

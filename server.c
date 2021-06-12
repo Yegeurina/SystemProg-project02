@@ -29,12 +29,14 @@ char logFileName[] = "./LogFile.txt";
 char Log[MAX_LOG][BUF_SIZE];
 int log_line = 0;
 
+int serv_sock;
+
 struct tm *t;
 time_t timer;
 
 int main(int argc, char *argv[])
 {
-    int serv_sock, clnt_sock;
+    int  clnt_sock;
     struct sockaddr_in serv_adr, clnt_adr;
     int clnt_adr_sz;
     pthread_t t_id;
@@ -262,7 +264,10 @@ void *handle_clnt(void *arg) //in thread
         if (serv_exit == 'q' || serv_exit == 'Q')
         {
              exit_flag = 1;
+             printf("GOOD BYE!");
+             close(serv_sock);
              pthread_exit(0);
+
         }
     }
 

@@ -263,9 +263,7 @@ void *handle_clnt(void *arg) //in thread
         printf("exitcode : %c\n",serv_exit);
         if (serv_exit=='q' || serv_exit=='Q')
         {
-            printf("Exit handling here");
              error_handling("EXIT CODE!");
-
         }
     }
 

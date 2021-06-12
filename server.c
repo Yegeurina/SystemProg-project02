@@ -61,19 +61,17 @@ int main(int argc, char *argv[])
     serv_adr.sin_family = AF_INET;
     serv_adr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_adr.sin_port = htons(atoi(argv[1]));
+    //in serv_sock TCP, IPv4
 
-    //in serv_sock
     if (bind(serv_sock, (struct sockaddr *)&serv_adr, sizeof(serv_adr)) == -1)
         error_handling("bind() error");
     if (listen(serv_sock, 5) == -1)
         error_handling("listen() error");
-
-    //error check
+        //error check
     while (1)
-    { //loop accept
+    { 
+        //loop accept
         t = localtime(&timer);
-        if (exit_flag == 1)
-            break;
         if (clnt_cnt < MAX_CLNT)
         {
             clnt_adr_sz = sizeof(clnt_adr);
@@ -87,11 +85,10 @@ int main(int argc, char *argv[])
             {
                 error_handling("Could not create Thread");
             }
-            pthread_join(t_id,NULL);
+            pthread_detach(t_id);
             printf(" Connceted client IP : %s ", inet_ntoa(clnt_adr.sin_addr));
             printf("(%d-%d-%d %d:%d)\n", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min); //join time
             printf(" User (%d/100)\n", clnt_cnt);
-            
         }
         else
         {
